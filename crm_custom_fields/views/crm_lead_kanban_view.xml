@@ -1,0 +1,65 @@
+<odoo>
+    <record id="crm_custom_fields_crm_lead_view_kanban_inherit" model="ir.ui.view">
+        <field name="name">crm.lead.kanban.inherit.add.fields</field>
+        <field name="model">crm.lead</field>
+        <field name="inherit_id" ref="crm.crm_case_kanban_view_leads"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='user_id']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//div[@class='o_kanban_card_crm_lead_revenue']" position="before">
+                <div class="d-flex mb-2 cabecera_card">
+                    <field name="canal" invisible="1"/>
+                    <span class="contenedor_icono_canal_18">
+                        <field name="canal_icon_html" 
+                            widget="html" 
+                            invisible="not canal"
+                            nolabel="1"
+                            class="d-inline-block align-middle me-2"
+                        />
+                    </span>
+                    <div class="f_name">
+                        <field class="fw-bold fs-5 pe-1" name="name" style="line-height: 1.1;"/>
+                    </div>
+                    <div class="texto_fecha_horas_tarjeta text-muted">
+                        <div class="tarjeta_fecha_dia_mes">
+                            <field name="fecha_display"/>
+                        </div>
+                        
+                        <div class="tarjeta_hora">
+                            <field name="hora_display"/>
+                        </div>
+                    </div>
+                </div>
+                <field name="phone" class="h4"/>
+                <div class="d-flex justify-content-between">
+                    <div class="cont_carrera_ciclo mb-0 me-2">
+                        <field name="carrera_postulada"/>
+                        <field name="servicio_educativo"/>
+                    </div>
+                </div>
+            </xpath>
+
+            <xpath expr="//field[@name='rotting_days']" position="after">
+                <div class="d-flex align-items-center">
+                    <field name="es_activo_autonoma_bot" widget="toggle" class="me-1 mi-toggle-personalizado-tarjeta"/>
+                        <div class="texto_fecha_horas_tarjeta text-muted">
+                            <div class="tarjeta_fecha_dia_mes">
+                                <field name="fecha_display_respuesta"/>
+                            </div>
+                            
+                            <div class="tarjeta_hora">
+                                <field name="hora_display_respuesta"/>
+                            </div>
+                        </div>
+                    <field name="user_id" widget="many2one_avatar_user" domain="[('share', '=', False)]" class="ms-2"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>

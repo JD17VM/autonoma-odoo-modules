@@ -1,0 +1,54 @@
+// Sobrescribir el color primario (el morado de Odoo) por un azul
+$o-brand-primary: #2A089B;
+$o-brand-primary_selected: #6948d6; 
+
+// Variables para el Header del Backend (Menú superior)
+$o-web-header-bg: $o-brand-primary; // Fondo del header
+$o-web-header-color: white;         // Color del texto/íconos en el header
+
+
+.o_main_navbar {
+    background-color: $o-brand-primary !important;
+    --o-navbar-height : 60px !important; 
+
+    .o_menu_sections > button, .o_menu_sections > a{
+        background-color: $o-brand-primary !important;
+
+        :hover{
+            background-color: $o-brand-primary_selected !important;
+        }
+    }
+}
+
+
+.custom-app-banner{
+    background-color: $o-brand-primary;
+
+    .contenedor_logos{
+        display:flex;
+        column-gap:8px;
+        margin-left: 15px;
+        padding-top: 10px ;
+        .contenedor_logo_texto_autonoma{
+            height: 60px;
+            //background-color:red;
+            width: 100px;
+
+            img{
+                width: 100%;
+            }
+        }
+        .division_linea{
+            background-color: white;
+            width:3px;
+        }
+        .contenedor_logo_empresa_cliente{
+            //background-color: green;
+            height: 60px;
+
+            img{
+                height: 100%;
+            }
+        }
+    }
+}
