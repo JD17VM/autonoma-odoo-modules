@@ -1,0 +1,41 @@
+name: Deploy Odoo Module to VPS
+
+# Se activa cada vez que haces 'push' a la rama 'main'
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install SSH Key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add SSH Host to known_hosts
+        run: ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to Server
+        run: |
+          # Conectarse al servidor y ejecutar comandos
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            
+            echo "--- Conectado al servidor ---"
+            
+            # 1. Ir a la carpeta del proyecto
+            cd /opt/odoo-addons
+            
+            # 2. Descargar los últimos cambios de GitHub
+            echo "--- Descargando cambios de GitHub (git pull) ---"
+            git pull origin main
+            
+            # 3. Reiniciar el contenedor de Odoo
+            echo "--- Reiniciando el contenedor de Odoo ---"
+            sudo docker restart ${{ secrets.ODOO_CONTAINER_NAME }}
+            
+            echo "--- ¡Despliegue automático completado! ---"
+          EOF
