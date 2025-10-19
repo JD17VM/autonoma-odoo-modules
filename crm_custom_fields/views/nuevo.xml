@@ -1,19 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="custom_banner_injection" inherit_id="web.webclient_bootstrap" name="Inyección de Banner de Alto Nivel">
-        
-        <xpath expr="/*" position="after">
-            <div class="custom-app-banner">
-                <div class="contenedor_logos">
-                    <div class="contenedor_logo_texto_autonoma">
-                        <img src="/crm_custom_fields/static/src/img/Texto_fondo_oscuro.png"/>
-                    </div>
-                    <div class="division_linea"></div>
-                    <div class="contenedor_logo_empresa_cliente">
-                        <img src="/crm_custom_fields/static/src/img/logoblanco_esparta.png"/>
+    <data>
+        <template id="custom_banner_injection" inherit_id="web.webclient_bootstrap" name="Inyección de Banner de Alto Nivel">
+            
+            <xpath expr="//t[@t-call='web.layout']" position="after">
+                <div class="custom-app-banner">
+                    <div class="contenedor_logos">
+                        <div class="contenedor_logo_texto_autonoma">
+                            <img src="/crm_custom_fields/static/src/img/Texto_fondo_oscuro.png" alt="Logo Autonoma"/>
+                        </div>
+                        <div class="division_linea"></div>
+                        <div class="contenedor_logo_empresa_cliente">
+                            <img src="/crm_custom_fields/static/src/img/logoblanco_esparta.png" alt="Logo Cliente"/>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </xpath>
-        
-    </template>
+            </xpath>
+            
+        </template>
+    </data>
 </odoo>

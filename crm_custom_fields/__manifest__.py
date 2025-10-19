@@ -9,7 +9,7 @@
         'views/crm_lead_form_view.xml',
         'views/crm_lead_kanban_view.xml',
         'views/favicon_inherit.xml',
-        'views/header_mod.xml',
+        #'views/header_mod.xml',
     ],
     'installable': True,
     'assets': {
