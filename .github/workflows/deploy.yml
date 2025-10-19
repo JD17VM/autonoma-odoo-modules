@@ -36,6 +36,12 @@ jobs:
             # 3. Reiniciar el contenedor de Odoo
             echo "--- Reiniciando el contenedor de Odoo ---"
             sudo docker restart ${{ secrets.ODOO_CONTAINER_NAME }}
+
+            # 4. (OPCIONAL) Forzar actualización del módulo en Odoo
+            echo "--- Esperando 10s a que Odoo reinicie... ---"
+            sleep 10
+            echo "--- Actualizando el módulo en la base de datos... ---"
+            sudo docker exec ${{ secrets.ODOO_CONTAINER_NAME }} odoo -d TuBaseDeDatos -u tu_nombre_de_modulo --stop-after-init
             
             echo "--- ¡Despliegue automático completado! ---"
           EOF
