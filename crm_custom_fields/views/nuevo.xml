@@ -1,12 +1,19 @@
-<record id="custom_logo_in_navbar" model="ir.ui.view">
-    <field name="name">Custom Logo in Navbar</field>
-    <field name="mode">extension</field>
-    <field name="inherit_id" ref="web.webclient_bootstrap"/>
-    <field name="arch" type="xml">
-        <xpath expr="/*" position="after"> 
-            <div class="custom-navbar-logo">
-                <img src="/crm_custom_fields/static/src/img/logoblanco_esparta.png" alt="Logo Personalizado"/>
+<odoo>
+    <template id="custom_banner_injection" inherit_id="web.webclient_bootstrap" name="Inyección de Banner de Alto Nivel">
+        
+        <xpath expr="/*" position="after">
+            <div class="custom-app-banner">
+                <div class="contenedor_logos">
+                    <div class="contenedor_logo_texto_autonoma">
+                        <img src="/crm_custom_fields/static/src/img/Texto_fondo_oscuro.png"/>
+                    </div>
+                    <div class="division_linea"></div>
+                    <div class="contenedor_logo_empresa_cliente">
+                        <img src="/crm_custom_fields/static/src/img/logoblanco_esparta.png"/>
+                    </div>
+                </div>
             </div>
         </xpath>
-    </field>
-</record>
+        
+    </template>
+</odoo>
