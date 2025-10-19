@@ -1,11 +1,11 @@
 <record id="custom_logo_in_navbar" model="ir.ui.view">
     <field name="name">Custom Logo in Navbar</field>
     <field name="mode">extension</field>
-    <field name="inherit_id" ref="web.webclient_layout"/>
+    <field name="inherit_id" ref="web.webclient_bootstrap"/>
     <field name="arch" type="xml">
-        <xpath expr="//nav[hasclass('o_main_navbar')]/div[hasclass('o_navbar_apps_menu')]" position="before">
+        <xpath expr="/*" position="after"> 
             <div class="custom-navbar-logo">
-                <img src="/crm_custom_fields/static/src/img/tu_logo.png" alt="Logo Personalizado"/>
+                <img src="/crm_custom_fields/static/src/img/logoblanco_esparta.png" alt="Logo Personalizado"/>
             </div>
         </xpath>
     </field>
