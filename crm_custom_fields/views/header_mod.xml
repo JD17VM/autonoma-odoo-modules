@@ -1,7 +1,7 @@
 <odoo>
     <template id="custom_bootstrap_modification" inherit_id="web.webclient_bootstrap" name="Modificación de Bootstrap del WebClient">
         
-        <xpath expr="//header" position="before">
+        <xpath expr="//t[@t-call='web.layout']" position="after">
             <div class="custom-app-banner">
                 <div class="contenedor_logos">
                     <div class="contenedor_logo_texto_autonoma">
@@ -14,6 +14,5 @@
                 </div>
             </div>
         </xpath>
-        
     </template>
 </odoo>
