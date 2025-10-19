@@ -1,7 +1,7 @@
 <odoo>
     <template id="custom_bootstrap_modification" inherit_id="web.webclient_bootstrap" name="Modificación de Bootstrap del WebClient">
         
-        <xpath expr="//div[@class='o_navbar_apps_menu']" position="before">
+        <xpath expr="//div[@class='o_main_navbar']" position="before">
             <div class="custom-app-banner">
                 <div class="contenedor_logos">
                     <div class="contenedor_logo_texto_autonoma">
