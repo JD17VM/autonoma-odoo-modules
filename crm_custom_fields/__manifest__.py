@@ -5,7 +5,7 @@
     'author': 'Tu Nombre',
     'depends': ['crm', 'web'],
     'data': [
-        'views/nuevo.xml',
+        #'views/nuevo.xml',
         'views/crm_lead_form_view.xml',
         'views/crm_lead_kanban_view.xml',
         'views/favicon_inherit.xml',
