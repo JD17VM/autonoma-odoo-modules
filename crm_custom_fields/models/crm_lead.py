@@ -209,3 +209,5 @@ class CrmLead(models.Model):
             else:
                 record.fecha_display_respuesta = False
                 record.hora_display_respuesta = False
+    
+    id_conversacion = fields.Integer(string="ID Conversación", index=True)
