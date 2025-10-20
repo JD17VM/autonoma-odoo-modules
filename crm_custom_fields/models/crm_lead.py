@@ -153,7 +153,7 @@ class CrmLead(models.Model):
         for record in self:
             if record.create_date:
                 # 1. Convertir a datetime
-                dt_obj = record.create_date
+                dt_obj = fields.Datetime.context_timestamp(record, record.create_date) # <-- LÍNEA CORREGIDA
                 
                 # 2. Formatear la fecha: '4 oct.'
                 # Formato: Día abreviado del mes (ej. '%d %b.')
