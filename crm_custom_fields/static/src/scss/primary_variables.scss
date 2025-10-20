@@ -52,3 +52,7 @@ $o-web-header-color: white;         // Color del texto/íconos en el header
         }
     }
 }
+
+.custom-app-banner + header.o_navbar {
+    background: red;
+}
