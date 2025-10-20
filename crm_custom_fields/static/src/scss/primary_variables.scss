@@ -34,12 +34,15 @@ $o-web-header-color: white;         // Color del texto/íconos en el header
         width: 200px;
         height: 46px;
         .contenedor_logo_texto_autonoma{
-            height: 100px;
+            height: 100%;
             //background-color:red;
             width: 49%;
 
             img{
                 width: 100%;
+                height: 100%;
+                object-fit: contain;
+                object-position: center;
             }
         }
         .division_linea{
@@ -52,7 +55,10 @@ $o-web-header-color: white;         // Color del texto/íconos en el header
             width: 49%;
 
             img{
+                width: 100%;
                 height: 100%;
+                object-fit: contain;
+                object-position: center;
             }
         }
     }
