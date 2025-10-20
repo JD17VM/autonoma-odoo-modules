@@ -102,8 +102,8 @@ class CrmLead(models.Model):
     def _compute_canal_icon_html(self):
         # Diccionario con las rutas de las imágenes por canal
         icon_map = {
-            'whatsapp_1': '/crm_custom_fields/static/src/img/whatsapp-logo.png',
-            'whatsapp_2': '/crm_custom_fields/static/src/img/whatsapp-logo.png',
+            'whatsapp_1': '/crm_custom_fields/static/src/img/whatsapp-logo_num_1.png',
+            'whatsapp_2': '/crm_custom_fields/static/src/img/whatsapp-logo_num_2.png',
             #'email': '/crm_custom_fields/static/src/img/email-logo.png',
             #'phone': '/crm_custom_fields/static/src/img/phone-logo.png',
             'messenger': '/crm_custom_fields/static/src/img/facebook-logo.png',
@@ -210,4 +210,4 @@ class CrmLead(models.Model):
                 record.fecha_display_respuesta = False
                 record.hora_display_respuesta = False
     
-    id_conversacion = fields.Integer(string="ID Conversación", index=True)
+    id_conversacion = fields.Integer(string="ID Conversación", index=True) # Agregar valor unico
