@@ -103,7 +103,7 @@ def check_connection():
                 except:
                     error_details += f"\nRespuesta del servidor:\n{e.response.text}"
         
-        raise UserError(f"¡ERROR DE CONEXIÓN! Chatwoot respondió con un error.\n\n{error_details}")
+        raise UserError(f"¡ERROR DE CONEXIÓN! Chatwoot respondió con un errored.\n\n{error_details}")
 
     except requests.exceptions.RequestException as e:
         _logger.error(f"Error de red al conectar con Chatwoot: {e}")
