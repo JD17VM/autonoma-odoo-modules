@@ -7,7 +7,7 @@ _logger = logging.getLogger(__name__)
 # --- Configuración Centralizada de Chatwoot ---
 CHATWOOT_URL = "https://app-n8n-chatwoot.essftr.easypanel.host"
 CHATWOOT_API_TOKEN = "w7TS8qA8XVLkU3bo8m7E4i8E"
-CHATWOOT_ACCOUNT_ID = 2  # Generalmente es 1 si solo tienes una instalación
+CHATWOOT_ACCOUNT_ID = 2  # Cambiado a 2 basado en tu sugerencia
 
 def _get_headers():
     """Crea los encabezados de autenticación para la API de Chatwoot."""
@@ -16,14 +16,37 @@ def _get_headers():
         'api_access_token': CHATWOOT_API_TOKEN
     }
 
+
+def _auto_detect_account_id():
+    """
+    Intenta detectar automáticamente el Account ID correcto.
+    Prueba con IDs del 1 al 10.
+    Retorna el primer ID que funcione, o None si ninguno funciona.
+    """
+    headers = _get_headers()
+    
+    for account_id in range(1, 11):
+        try:
+            test_url = f"{CHATWOOT_URL}/api/v1/accounts/{account_id}/agents"
+            response = requests.get(test_url, headers=headers, timeout=5)
+            
+            if response.status_code == 200:
+                _logger.info(f"✓ Account ID detectado automáticamente: {account_id}")
+                return account_id
+        except:
+            continue
+    
+    return None
+
 def check_connection():
     """
     Verifica la conexión con la API de Chatwoot.
+    Detecta automáticamente el Account ID correcto si el configurado no funciona.
     Lanza UserError en caso de éxito o fracaso para notificar al usuario.
     """
     _logger.info("Chatwoot API: Verificando conexión...")
     
-    # CORRECCIÓN: La ruta correcta incluye /api/v1/accounts/{account_id}/agents
+    # Intentar con el Account ID configurado
     test_url = f"{CHATWOOT_URL}/api/v1/accounts/{CHATWOOT_ACCOUNT_ID}/agents"
     headers = _get_headers()
 
@@ -36,35 +59,49 @@ def check_connection():
         agent_count = len(agents_data) if isinstance(agents_data, list) else 0
         
         # Mostrar información de los agentes encontrados
-        agent_info = "\n\nAgentes encontrados:\n"
+        agent_info = "\n\n✅ Agentes encontrados:\n"
         if isinstance(agents_data, list):
             for agent in agents_data:
-                agent_info += f"- {agent.get('name', 'Sin nombre')} (Email: {agent.get('email', 'N/A')}, ID: {agent.get('id', 'N/A')})\n"
+                agent_info += f"  • {agent.get('name', 'Sin nombre')} (Email: {agent.get('email', 'N/A')}, ID: {agent.get('id', 'N/A')})\n"
         
-        raise UserError(f"¡ÉXITO! Conexión correcta con Chatwoot.\n\n"
-                        f"URL: {test_url}\n"
-                        f"Código: {response.status_code}\n"
-                        f"Se encontraron {agent_count} agentes.{agent_info}")
+        raise UserError(f"🎉 ¡ÉXITO! Conexión correcta con Chatwoot.\n\n"
+                        f"📍 URL: {test_url}\n"
+                        f"✓ Código: {response.status_code}\n"
+                        f"✓ Account ID: {CHATWOOT_ACCOUNT_ID}\n"
+                        f"✓ Total de agentes: {agent_count}{agent_info}")
 
     except requests.exceptions.HTTPError as e:
-        error_details = f"URL intentada: {test_url}\n"
-        error_details += f"Código: {e.response.status_code}\n"
-        
-        if e.response.status_code == 401:
-            error_details += "\n❌ Error: No autorizado.\n"
-            error_details += "Solución: Revisa tu 'CHATWOOT_API_TOKEN' en chatwoot_api.py.\n"
-            error_details += "Debes usar un token de API válido (no un token de acceso personal)."
-        elif e.response.status_code == 404:
-            error_details += "\n❌ Error: Ruta no encontrada.\n"
-            error_details += "Posibles causas:\n"
-            error_details += f"1. El ACCOUNT_ID '{CHATWOOT_ACCOUNT_ID}' no existe.\n"
-            error_details += "2. La URL base no es correcta.\n"
-            error_details += f"3. Verifica en tu Chatwoot: Settings -> Account Settings para ver el Account ID correcto."
+        # Si es error 404, intentar detectar el Account ID correcto
+        if e.response.status_code == 404:
+            _logger.warning(f"Account ID {CHATWOOT_ACCOUNT_ID} no funciona, intentando detectar automáticamente...")
+            detected_id = _auto_detect_account_id()
+            
+            if detected_id:
+                error_details = f"❌ El ACCOUNT_ID configurado ({CHATWOOT_ACCOUNT_ID}) no existe.\n\n"
+                error_details += f"✅ SOLUCIÓN ENCONTRADA:\n"
+                error_details += f"   Tu Account ID correcto es: {detected_id}\n\n"
+                error_details += f"Cambia esta línea en chatwoot_api.py:\n"
+                error_details += f"   CHATWOOT_ACCOUNT_ID = {detected_id}\n"
+            else:
+                error_details = f"❌ El ACCOUNT_ID {CHATWOOT_ACCOUNT_ID} no existe.\n\n"
+                error_details += f"URL intentada: {test_url}\n\n"
+                error_details += f"Posibles soluciones:\n"
+                error_details += f"1. Ve a tu Chatwoot → Settings → Account Settings\n"
+                error_details += f"2. O mira la URL cuando estés en Chatwoot: .../app/accounts/X/...\n"
+                error_details += f"3. Ese número 'X' es tu Account ID correcto\n"
         else:
-            try:
-                error_details += f"\nRespuesta del servidor:\n{e.response.json()}"
-            except:
-                error_details += f"\nRespuesta del servidor:\n{e.response.text}"
+            error_details = f"URL intentada: {test_url}\n"
+            error_details += f"Código: {e.response.status_code}\n"
+            
+            if e.response.status_code == 401:
+                error_details += "\n❌ Error: No autorizado.\n"
+                error_details += "Solución: Revisa tu 'CHATWOOT_API_TOKEN' en chatwoot_api.py.\n"
+                error_details += "Debes usar un token de API válido (no un token de acceso personal)."
+            else:
+                try:
+                    error_details += f"\nRespuesta del servidor:\n{e.response.json()}"
+                except:
+                    error_details += f"\nRespuesta del servidor:\n{e.response.text}"
         
         raise UserError(f"¡ERROR DE CONEXIÓN! Chatwoot respondió con un error.\n\n{error_details}")
 
