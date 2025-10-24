@@ -42,22 +42,7 @@
 
             <xpath expr="//group[@name='lead_priority']" position="after">
                 <separator string="Información de Postulación" /> 
-                <group>
-                    <field name="carrera_postulada"/>
-                    <field name="area"/>
-                    <field name="servicio_educativo"/>
-                </group>
-                <group>
-                </group>
-                
-                <separator string="Información de Contacto"/>
-                <group>
-                    <field name="partner_id"/>
-                </group>
-
-            <xpath expr="//group[@name='lead_priority']" position="after">
-                <separator string="Información de Postulación" /> 
-                <group>
+                    <group>
                     <group>
                         <field name="carrera_postulada"/>
                         <field name="area"/>
@@ -72,9 +57,6 @@
                 <group>
                     <field name="partner_id"/>
                 </group>
-                         
-            </xpath>
-
             </xpath>
             
         </field>
