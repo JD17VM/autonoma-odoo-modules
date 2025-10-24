@@ -58,12 +58,14 @@
             <xpath expr="//group[@name='lead_priority']" position="after">
                 <separator string="Información de Postulación" /> 
                 <group>
-                    <field name="carrera_postulada"/>
-                    <field name="area"/>
-                    <field name="servicio_educativo"/>
-                </group>
-                <group>
-                    <field name="universidad_postulada"/>
+                    <group>
+                        <field name="carrera_postulada"/>
+                        <field name="area"/>
+                        <field name="servicio_educativo"/>
+                    </group>
+                    <group>
+                        <field name="universidad_postulada"/>
+                    </group>
                 </group>
                 
                 <separator string="Información de Contacto"/>
