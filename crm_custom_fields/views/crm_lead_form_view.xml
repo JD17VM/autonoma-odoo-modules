@@ -54,14 +54,32 @@
                 <group>
                     <field name="partner_id"/>
                 </group>
-<!-- Comentar temporalmente
+
+            <xpath expr="//group[@name='lead_priority']" position="after">
+                <separator string="Información de Postulación" /> 
                 <group>
-                    <button name="test_chatwoot_connection" 
-                            type="object" 
-                            string="Probar Conexión Chatwoot (Test)" 
-                            class="btn-primary"/>
+                    <field name="carrera_postulada"/>
+                    <field name="area"/>
+                    <field name="servicio_educativo"/>
                 </group>
--->       
+                <group>
+                </group>
+                
+                <separator string="Información de Contacto"/>
+                <group>
+                    <field name="partner_id"/>
+                </group>
+                
+                <!-- BOTÓN DE PRUEBA TEMPORAL -->
+                <group>
+                    <button name="test_manual_sync" 
+                            type="object" 
+                            string="🧪 Probar Sincronización Manual" 
+                            class="btn-warning"/>
+                </group>
+                
+            </xpath>
+
             </xpath>
             
         </field>

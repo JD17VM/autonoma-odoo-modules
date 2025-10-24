@@ -224,46 +224,75 @@ class CrmLead(models.Model):
     
     id_conversacion = fields.Integer(string="ID Conversación", index=True) # Agregar valor unico
 
-# ========== SINCRONIZACIÓN CON CHATWOOT ==========
+    # ========== SINCRONIZACIÓN CON CHATWOOT ==========
 
-def write(self, vals):
-    """
-    Detecta cuando cambia el vendedor y sincroniza con Chatwoot.
-    """
-    # Ejecutamos el write original primero
-    result = super(CrmLead, self).write(vals)
-    
-    # Si cambió el vendedor, sincronizamos
-    if 'user_id' in vals:
-        for record in self:
-            _logger.info(f"Cambio de vendedor detectado en Lead {record.id}")
-            
-            # Sincronizar con Chatwoot
-            sync_result = chatwoot_sync.sync_assignment_to_chatwoot(
-                lead=record,
-                new_user=record.user_id
-            )
-            
-            # Mostrar resultado en el chatter
-            record._notify_sync_result(sync_result)
-    
-    return result
+    def write(self, vals):
+        """
+        Detecta cuando cambia el vendedor y sincroniza con Chatwoot.
+        """
+        # Ejecutamos el write original primero
+        result = super(CrmLead, self).write(vals)
+        
+        # Si cambió el vendedor, sincronizamos
+        if 'user_id' in vals:
+            for record in self:
+                _logger.info(f"Cambio de vendedor detectado en Lead {record.id}")
+                
+                # Sincronizar con Chatwoot
+                sync_result = chatwoot_sync.sync_assignment_to_chatwoot(
+                    lead=record,
+                    new_user=record.user_id
+                )
+                
+                # Mostrar resultado en el chatter
+                record._notify_sync_result(sync_result)
+        
+        return result
 
-def _notify_sync_result(self, result):
-    """
-    Muestra el resultado de la sincronización en el chatter.
-    """
-    if result['success']:
-        # ✅ ÉXITO - Mensaje verde
-        self.message_post(...)
-    else:
-        # ❌ ERROR - Mensaje rojo/amarillo
-        self.message_post(...)
+    def _notify_sync_result(self, result):
+        """
+        Muestra el resultado de la sincronización en el chatter.
+        """
+        if result['success']:
+            # ✅ ÉXITO - Mensaje verde
+            self.message_post(...)
+        else:
+            # ❌ ERROR - Mensaje rojo/amarillo
+            self.message_post(...)
 
-# ========== FUNCIÓN DE PRUEBA ==========
+    # ========== FUNCIÓN DE PRUEBA ==========
 
-def test_chatwoot_connection(self):
-    """
-    Prueba la conexión con Chatwoot.
-    """
-    chatwoot_api.check_connection()
+    def test_chatwoot_connection(self):
+        """
+        Prueba la conexión con Chatwoot.
+        """
+        chatwoot_api.check_connection()
+
+
+    def test_manual_sync(self):
+        """
+        Prueba manual para ver si el código funciona.
+        """
+        _logger.info("🧪 BOTÓN DE PRUEBA PRESIONADO")
+        
+        if not self.user_id:
+            raise UserError("❌ Este lead no tiene vendedor asignado")
+        
+        if not self.id_conversacion:
+            raise UserError("❌ Este lead no tiene ID de conversación")
+        
+        _logger.info(f"Lead: {self.id}")
+        _logger.info(f"Vendedor: {self.user_id.name}")
+        _logger.info(f"Email: {self.user_id.email}")
+        _logger.info(f"ID Conversación: {self.id_conversacion}")
+        
+        # Llamar a la sincronización
+        sync_result = chatwoot_sync.sync_assignment_to_chatwoot(
+            lead=self,
+            new_user=self.user_id
+        )
+        
+        # Mostrar resultado
+        self._notify_sync_result(sync_result)
+        
+        raise UserError(f"✅ Prueba completada. Revisa el chatter para ver el resultado.\n\n{sync_result['message']}")
