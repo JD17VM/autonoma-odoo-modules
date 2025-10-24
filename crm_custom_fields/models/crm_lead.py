@@ -93,6 +93,13 @@ class CrmLead(models.Model):
         ('col_sec_esp', 'I.E.P Esparta (secundaria)')
     ], string="Servicio Educativo")
 
+    universidad_postulada = fields.Selection([
+        ('unsa', 'Universidad Nacional de San Agustín'),
+        ('ucsp', 'Universidad Católica San Pablo'),
+        ('ucsm', 'Universidad Católica Santa María'),
+        ('otra', 'Otra Universidad'),
+    ], string="Universidad Postulada", default='unsa')
+
     canal = fields.Selection([
         ('whatsapp_1', 'Whastapp 1'),
         ('whatsapp_2', 'Whastapp 2'),

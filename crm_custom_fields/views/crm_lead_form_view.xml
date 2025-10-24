@@ -63,21 +63,14 @@
                     <field name="servicio_educativo"/>
                 </group>
                 <group>
+                    <field name="universidad_postulada"/>
                 </group>
                 
                 <separator string="Información de Contacto"/>
                 <group>
                     <field name="partner_id"/>
                 </group>
-                
-                <!-- BOTÓN DE PRUEBA TEMPORAL -->
-                <group>
-                    <button name="test_manual_sync" 
-                            type="object" 
-                            string="🧪 Probar Sincronización Manual" 
-                            class="btn-warning"/>
-                </group>
-                
+                         
             </xpath>
 
             </xpath>
