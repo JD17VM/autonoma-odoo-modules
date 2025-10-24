@@ -254,7 +254,6 @@ class CrmLead(models.Model):
         Muestra el resultado de la sincronización en el chatter.
         """
         if result['success']:
-            # ✅ ÉXITO
             self.message_post(
                 body=f"<div style='padding: 10px; background-color: #d4edda; border-left: 4px solid #28a745;'>"
                     f"<h4 style='margin: 0 0 10px 0; color: #155724;'>✅ Asignación sincronizada con Chatwoot</h4>"
@@ -263,11 +262,10 @@ class CrmLead(models.Model):
                     f"<p style='margin: 5px 0;'><strong>ID Conversación:</strong> {self.id_conversacion}</p>"
                     f"<p style='margin: 5px 0;'><strong>ID Agente Chatwoot:</strong> {result['agent_id']}</p>"
                     f"</div>",
-                subject="Sincronización exitosa",
-                message_type='notification'
+                message_type='comment',
+                subtype_xmlid='mail.mt_note'
             )
         else:
-            # ❌ ERROR
             if result['found_agent']:
                 icon = "⚠️"
                 color = "#fff3cd"
@@ -287,8 +285,8 @@ class CrmLead(models.Model):
                     f"<p style='margin: 5px 0;'><strong>ID Conversación:</strong> {self.id_conversacion if self.id_conversacion else 'No disponible'}</p>"
                     f"<p style='margin: 10px 0 5px 0; color: {text_color};'><strong>Error:</strong> {result['message']}</p>"
                     f"</div>",
-                subject="Error de sincronización",
-                message_type='notification'
+                message_type='comment',
+                subtype_xmlid='mail.mt_note'
             )
 
     # ========== FUNCIÓN DE PRUEBA ==========
