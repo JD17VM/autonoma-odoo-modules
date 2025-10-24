@@ -54,14 +54,14 @@
                 <group>
                     <field name="partner_id"/>
                 </group>
-
+<!-- Comentar temporalmente
                 <group>
                     <button name="test_chatwoot_connection" 
                             type="object" 
                             string="Probar Conexión Chatwoot (Test)" 
                             class="btn-primary"/>
                 </group>
-                
+-->       
             </xpath>
             
         </field>
