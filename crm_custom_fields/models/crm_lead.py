@@ -2,9 +2,15 @@ from odoo import models, fields, api
 
 from odoo.exceptions import UserError # Es buena práctica mantenerlo por si lo usas en el futuro.
 
+import logging
+
 # --- ESTA ES LA LÍNEA QUE FALTABA ---
 # Importamos nuestro nuevo módulo para poder usar sus funciones.
 from . import chatwoot_api
+from . import chatwoot_sync
+
+_logger = logging.getLogger(__name__)
+
 
 class CrmLead(models.Model):
     _inherit = 'crm.lead'
@@ -218,11 +224,46 @@ class CrmLead(models.Model):
     
     id_conversacion = fields.Integer(string="ID Conversación", index=True) # Agregar valor unico
 
-# --- Sección de Chatwoot ahora simplificada ---
+# ========== SINCRONIZACIÓN CON CHATWOOT ==========
 
-    def test_chatwoot_connection(self):
-        """
-        Esta función ahora solo llama al módulo de API para hacer la prueba.
-        El código complejo ha sido movido a 'chatwoot_api.py'.
-        """
-        chatwoot_api.check_connection()
+def write(self, vals):
+    """
+    Detecta cuando cambia el vendedor y sincroniza con Chatwoot.
+    """
+    # Ejecutamos el write original primero
+    result = super(CrmLead, self).write(vals)
+    
+    # Si cambió el vendedor, sincronizamos
+    if 'user_id' in vals:
+        for record in self:
+            _logger.info(f"Cambio de vendedor detectado en Lead {record.id}")
+            
+            # Sincronizar con Chatwoot
+            sync_result = chatwoot_sync.sync_assignment_to_chatwoot(
+                lead=record,
+                new_user=record.user_id
+            )
+            
+            # Mostrar resultado en el chatter
+            record._notify_sync_result(sync_result)
+    
+    return result
+
+def _notify_sync_result(self, result):
+    """
+    Muestra el resultado de la sincronización en el chatter.
+    """
+    if result['success']:
+        # ✅ ÉXITO - Mensaje verde
+        self.message_post(...)
+    else:
+        # ❌ ERROR - Mensaje rojo/amarillo
+        self.message_post(...)
+
+# ========== FUNCIÓN DE PRUEBA ==========
+
+def test_chatwoot_connection(self):
+    """
+    Prueba la conexión con Chatwoot.
+    """
+    chatwoot_api.check_connection()
