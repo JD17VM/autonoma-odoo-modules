@@ -208,7 +208,7 @@ class CrmLead(models.Model):
         for record in self:
             if record.ultima_hora_respuesta_general:
                 # 1. Convertir a datetime
-                dt_obj = record.ultima_hora_respuesta_general
+                dt_obj = fields.Datetime.context_timestamp(record, record.ultima_hora_respuesta_general)
                 
                 # 2. Formatear la fecha: '4 oct.'
                 # Formato: Día abreviado del mes (ej. '%d %b.')
