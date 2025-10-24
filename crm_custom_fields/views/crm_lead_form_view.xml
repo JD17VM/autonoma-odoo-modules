@@ -40,9 +40,9 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
 
-            <xpath expr="//group[@name='lead_priority']" position="after">
+            <xpath expr="//sheet/group[1]" position="after">
                 <separator string="Información de Postulación" /> 
-                    <group>
+                <group>
                     <group>
                         <field name="carrera_postulada"/>
                         <field name="area"/>
