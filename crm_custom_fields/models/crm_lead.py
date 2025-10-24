@@ -254,11 +254,42 @@ class CrmLead(models.Model):
         Muestra el resultado de la sincronización en el chatter.
         """
         if result['success']:
-            # ✅ ÉXITO - Mensaje verde
-            self.message_post(...)
+            # ✅ ÉXITO
+            self.message_post(
+                body=f"<div style='padding: 10px; background-color: #d4edda; border-left: 4px solid #28a745;'>"
+                    f"<h4 style='margin: 0 0 10px 0; color: #155724;'>✅ Asignación sincronizada con Chatwoot</h4>"
+                    f"<p style='margin: 5px 0;'><strong>Vendedor:</strong> {self.user_id.name}</p>"
+                    f"<p style='margin: 5px 0;'><strong>Email:</strong> {self.user_id.email}</p>"
+                    f"<p style='margin: 5px 0;'><strong>ID Conversación:</strong> {self.id_conversacion}</p>"
+                    f"<p style='margin: 5px 0;'><strong>ID Agente Chatwoot:</strong> {result['agent_id']}</p>"
+                    f"</div>",
+                subject="Sincronización exitosa",
+                message_type='notification'
+            )
         else:
-            # ❌ ERROR - Mensaje rojo/amarillo
-            self.message_post(...)
+            # ❌ ERROR
+            if result['found_agent']:
+                icon = "⚠️"
+                color = "#fff3cd"
+                border_color = "#ffc107"
+                text_color = "#856404"
+            else:
+                icon = "❌"
+                color = "#f8d7da"
+                border_color = "#dc3545"
+                text_color = "#721c24"
+            
+            self.message_post(
+                body=f"<div style='padding: 10px; background-color: {color}; border-left: 4px solid {border_color};'>"
+                    f"<h4 style='margin: 0 0 10px 0; color: {text_color};'>{icon} Error en sincronización con Chatwoot</h4>"
+                    f"<p style='margin: 5px 0;'><strong>Vendedor:</strong> {self.user_id.name if self.user_id else 'Sin asignar'}</p>"
+                    f"<p style='margin: 5px 0;'><strong>Email:</strong> {self.user_id.email if self.user_id and self.user_id.email else 'No configurado'}</p>"
+                    f"<p style='margin: 5px 0;'><strong>ID Conversación:</strong> {self.id_conversacion if self.id_conversacion else 'No disponible'}</p>"
+                    f"<p style='margin: 10px 0 5px 0; color: {text_color};'><strong>Error:</strong> {result['message']}</p>"
+                    f"</div>",
+                subject="Error de sincronización",
+                message_type='notification'
+            )
 
     # ========== FUNCIÓN DE PRUEBA ==========
 
