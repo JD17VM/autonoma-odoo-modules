@@ -128,6 +128,7 @@ class CrmLead(models.Model):
             #'phone': '/crm_custom_fields/static/src/img/phone-logo.png',
             'messenger': '/crm_custom_fields/static/src/img/facebook-logo.png',
             'instagram': '/crm_custom_fields/static/src/img/instagram-logo.png',
+            'manual': '/crm_custom_fields/static/src/img/notas-manuales-logo.png',
             #'web': '/crm_custom_fields/static/src/img/web-logo.png',
         }
         
