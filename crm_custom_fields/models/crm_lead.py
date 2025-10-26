@@ -146,6 +146,34 @@ class CrmLead(models.Model):
         default=True  # Define el valor inicial por defecto
     )
 
+    can_edit_owner = fields.Boolean(
+        string="Puede Editar Vendedor",
+        compute='_compute_can_edit_owner',
+        store=False  # Debe ser dinámico, no almacenado
+    )
+
+    # ... (al final de tu clase, después de test_manual_sync) ...
+
+    def _compute_can_edit_owner(self):
+        """
+        Comprueba si el usuario actual tiene permiso para editar el campo 'user_id'.
+        """
+        current_user = self.env.user
+        
+        # Comprobamos si el usuario es Gerente de Ventas
+        is_manager = self.env.user.has_group('sales_team.group_sale_manager')
+
+        for record in self:
+            # Permitimos la edición SI:
+            # 1. El registro aún no tiene propietario (es nuevo o no asignado)
+            # 2. El usuario actual ES el propietario
+            # 3. El usuario actual ES un Gerente de Ventas
+            
+            if (not record.user_id) or (record.user_id == current_user) or (is_manager):
+                record.can_edit_owner = True
+            else:
+                record.can_edit_owner = False
+
     
     # -------------- HORA FECHA CREACION --------------
 
@@ -237,9 +265,36 @@ class CrmLead(models.Model):
 
     def write(self, vals):
         """
-        Detecta cuando cambia el vendedor y sincroniza con Chatwoot.
+        SOBREESCRITO:
+        1. (NUEVO) Bloquea la reasignación si el usuario actual no es el propietario.
+        2. (Original) Detecta cuando cambia el vendedor y sincroniza con Chatwoot.
         """
-        # Ejecutamos el write original primero
+        
+        # --- INICIO DEL NUEVO BLOQUEO DE REASIGNACIÓN ---
+        if 'user_id' in vals:
+            # Recorremos cada oportunidad que se está intentando modificar
+            for record in self:
+                current_owner = record.user_id
+                current_user = self.env.user
+                
+                # Verificamos si el usuario actual tiene permisos de Gerente de Ventas
+                # 'sales_team.group_sale_manager' es el ID de grupo estándar de Odoo
+                is_manager = self.env.user.has_group('sales_team.group_sale_manager')
+
+                # CONDICIÓN DE BLOQUEO:
+                # 1. La oportunidad TIENE un propietario (current_owner)
+                # 2. El usuario actual NO es ese propietario (current_owner != current_user)
+                # 3. El usuario actual TAMPOCO es un Gerente (not is_manager)
+                if current_owner and current_owner != current_user and not is_manager:
+                    # ¡Lanzamos un error y detenemos la operación!
+                    raise UserError(
+                        f"¡Reasignación Bloqueada!\n\n"
+                        f"Solo {current_owner.name} (el vendedor asignado) o un "
+                        f"Gerente de Ventas puede cambiar el propietario de esta oportunidad."
+                    )
+        # --- FIN DEL NUEVO BLOQUEO ---
+
+        # Si pasa el bloqueo, continuamos con el 'write' original
         result = super(CrmLead, self).write(vals)
         
         # Si cambió el vendedor, sincronizamos

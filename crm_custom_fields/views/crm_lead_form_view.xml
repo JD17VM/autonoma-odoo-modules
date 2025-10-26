@@ -76,6 +76,14 @@
                 <xpath expr="//field[@name='tag_ids']" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
+
+                <xpath expr="//field[@name='team_id']" position="after">
+                    <field name="can_edit_owner" invisible="1"/>
+                </xpath>
+
+                <xpath expr="//field[@name='user_id']" position="attributes">
+                    <attribute name="attrs">{'readonly': [('can_edit_owner', '=', False)]}</attribute>
+                </xpath>
             </field>
         </record>
     </data>
