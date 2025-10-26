@@ -1,0 +1,624 @@
+Tengo un problema de pasar chats (Chatwoot) o leads (Odoo) entre usuarios, nos e que pasa, parece que es un tema de que no se vinucla correctamente por ID o algo asi. estos son los errores que me da:
+
+Odoo registros:
+
+2025-10-26 22:55:54,875 1 INFO odoo_bd_crm_autonoma odoo.addons.base.models.ir_cron: Job 'Mail: Email Queue Manager' (3) starting 
+2025-10-26 22:55:54,889 1 INFO odoo_bd_crm_autonoma odoo.addons.base.models.ir_cron: Job 'Mail: Email Queue Manager' (3) fully done (#loop 1; done 0; remaining 0; duration 0.01s) 
+2025-10-26 22:59:24,211 1 INFO academia_esparta_bd odoo.addons.base.models.ir_cron: Job 'Notification: Notify scheduled messages' (8) starting 
+2025-10-26 22:59:24,229 1 INFO academia_esparta_bd odoo.addons.base.models.ir_cron: Job 'Notification: Notify scheduled messages' (8) fully done (#loop 1; done 0; remaining 0; duration 0.02s) 
+2025-10-26 22:59:24,239 1 INFO academia_esparta_bd odoo.addons.base.models.ir_cron: Job 'Mail: Email Queue Manager' (3) starting 
+2025-10-26 22:59:24,254 1 INFO academia_esparta_bd odoo.addons.base.models.ir_cron: Job 'Mail: Email Queue Manager' (3) fully done (#loop 1; done 0; remaining 0; duration 0.02s) 
+
+Chatwoot Registros:
+
+ (Views: 19.8ms | ActiveRecord: 25.5ms | Allocations: 13639)
+I, [2025-10-25T03:54:51.253479 #1]  INFO -- : [37527c1f-2fae-4872-b777-b79148582cd4] Started GET "/api/v1/accounts/2/inbox_members/13" for 179.7.180.143 at 2025-10-25 03:54:51 +0000
+Passing 'call' command to redis as is; blind passthrough has been deprecated and will be removed in redis-namespace 2.0 (at /gems/ruby/3.4.0/gems/activesupport-7.1.5.2/lib/active_support/cache/redis_cache_store.rb:454:in 'block (2 levels) in ActiveSupport::Cache::RedisCacheStore#change_counter')
+I, [2025-10-25T03:54:51.257815 #1]  INFO -- : [37527c1f-2fae-4872-b777-b79148582cd4] Processing by Api::V1::Accounts::InboxMembersController#show as JSON
+I, [2025-10-25T03:54:51.257881 #1]  INFO -- : [37527c1f-2fae-4872-b777-b79148582cd4]   Parameters: {"account_id" => "2", "inbox_id" => "13"}
+I, [2025-10-25T03:54:51.286450 #1]  INFO -- : [37527c1f-2fae-4872-b777-b79148582cd4] Completed 200 OK in 28ms (Views: 14.3ms | ActiveRecord: 5.0ms | Allocations: 7802)
+I, [2025-10-25T03:54:55.015176 #1]  INFO -- : [7e48745e-1fdd-4df2-bd82-92c84957870e] Started GET "/api/v1/accounts/2/agents" for 179.7.180.143 at 2025-10-25 03:54:55 +0000
+I, [2025-10-25T03:54:55.017053 #1]  INFO -- : [bcf98857-2746-4951-9b76-e7bf02a4ddfd] Started GET "/api/v1/accounts/2/portals" for 179.7.180.143 at 2025-10-25 03:54:55 +0000
+
+---
+
+Algo que me di cuenta es que el error solo se daba en el caso del Vendedor C:
+
+
+Vendedor C Odoo
+5:49 p. m.
+Vendedor C OdooVendedor A Odoo(Vendedor)
+
+Vendedor C Odoo
+5:49 p. m.
+⚠️ Error de asignación en Chatwoot
+Error: Error al asignar la conversación en Chatwoot
+
+Detalles del intento:
+Vendedor: Vendedor A Odoo
+Email: vendedor_a@autonoma.com
+ID Conversación: 11
+
+
+Si se le pasa un lead (chat) al vendedor C da error. Si el vendeor C le apsa un Chat a otro vendedor da error. Entonces porfavor necesito que revises bien el codigo y encuters el error porfavor. En los otros casos como vendedor A B y D si se puedne pasr entre ellos normal.
+
+Parece que es tema de ids que no se vinculan bien o estoy confundiendo IDs o algo asi. Esto mr preoucpa porque peudeo hestar ahciendo lo mal. Te paso todo el codigo que considero. Pero si deseas que te pase mas codigo me avisas:
+
+from odoo import models, fields, api
+from markupsafe import Markup
+
+from odoo.exceptions import UserError # Es buena práctica mantenerlo por si lo usas en el futuro.
+
+import logging
+
+# --- ESTA ES LA LÍNEA QUE FALTABA ---
+# Importamos nuestro nuevo módulo para poder usar sus funciones.
+from . import chatwoot_api
+from . import chatwoot_sync
+
+_logger = logging.getLogger(__name__)
+
+
+class CrmLead(models.Model):
+    _inherit = 'crm.lead'
+
+    carrera_postulada = fields.Selection([
+        #INGENIERÍAS
+        ('ing-ing_quimica', 'Ing. Química'),
+        ('ing-ing_ambiental', 'Ing. Ambiental'),
+        ('ing-ing_materiales', 'Ing. de Materiales'),
+        ('ing-ing_metalurgica', 'Ing. Metalúrgica'),
+        ('ing-ing_industrias_alimentarias', 'Ing. de Industrias Alimentarias'),
+
+        ('ing-ing_sistemas', 'Ing. de Sistemas'),
+        ('ing-ing_electrica', 'Ing. Eléctrica'),
+        ('ing-ing_electronica', 'Ing. Electrónica'),
+        ('ing-ing_mecanica', 'Ing. Mecánica'),
+        ('ing-ing_industrial', 'Ing. Industrial'),
+        ('ing-cs_computacion', 'Ciencia de la Computación'),
+        ('ing-ing_telecomunicaciones', 'Ing. de Telecomunicaciones'),
+
+        ('ing-ing_geofisica', 'Ing. Geofísica'),
+        ('ing-ing_geologica', 'Ing. Geológica'),
+        ('ing-ing__minas', 'Ing. de Minas'),
+
+        ('ing-ing_civil', 'Ing. Civil'),
+        ('ing-ing_sanitaria', 'Ing. Sanitaria'),
+
+        ('ing-fisica', 'Física'),
+        ('ing-matematicas', 'Matemáticas'),
+        ('ing-quimica', 'Química'),
+
+        ('ing-arquitectura', 'Arquitectura'),
+
+        #BIOMÉDICAS
+        ('bio-biologia', 'Biología'),
+        ('bio-cs_nutricion', 'Cs. de la Nutrición'),
+        ('bio-ing_pesquera', 'Ing. Pesquera'),
+        ('bio-medicina', 'Medicina'),
+        ('bio-enfermeria', 'Enfermería'),
+        ('bio-agronomia', 'Agronomía'),
+
+        #SOCIALES
+        ('soc-contabilidad', 'Contabilidad'),
+        ('soc-finanzas', 'Finanzas'),
+        ('soc-economia', 'Economía'),
+        ('soc-derecho', 'Derecho'),
+        ('soc-trabajo_social', 'Trabajo Social'),
+        ('soc-antropologia', 'Antropología'),
+        ('soc-turismo_hoteleria', 'Turismo y Hotelería'),
+        ('soc-sociologia', 'Sociología'),
+        ('soc-historia', 'Historia'),
+        ('soc-psicologia', 'Psicología'),
+        ('soc-relaciones_industriales', 'Relaciones Industriales'),
+        ('soc-ciencias_comunicacion', 'Ciencias de la Comunicación'),
+        ('soc-filosofia', 'Filosofía'),
+        ('soc-literatura', 'Literatura'),
+        ('soc-artes', 'Artes'),
+        ('soc-administracion', 'Administración'),
+        ('soc-marketing', 'Marketing'),
+        ('soc-banca_seguros', 'Banca y Seguros'),
+        ('soc-gestion_publica', 'Gestión Pública'),
+        ('soc-gestion_empresas', 'Gestión de Empresas'),
+        ('soc-educacion', 'Educacion'),
+    ], string="Carrera Postulada")
+
+    area = fields.Selection([
+        ('ingenierias', 'Ingenierías'),
+        ('sociales', 'Sociales'),
+        ('biomedicas', 'Biomédicas')
+    ], string="Área")
+
+    servicio_educativo = fields.Selection([
+        ('ord_2_pre_man', 'Ciclo Ordinario II - Presencial Mañana- 2026'),
+        ('ord_2_pre_tar', 'Ciclo Ordinario II - Presencial Tarde - 2026'),
+        ('cep_2_pre_man', 'Ciclo CEPRUNSA II - Presencial Mañana - 2026'),
+        ('cep_2_pre_tar', 'Ciclo CEPRUNSA II - Presencial Tarde - 2026'),
+        ('cep_2_vir_tar', 'Ciclo CEPRUNSA II - Virtual Tarde - 2026'),
+        ('quint_pre_tar', 'Ciclo CEPRUNSA Quintos - Presencial Tarde - 2026'),
+        ('quint_vir_tar', 'Ciclo CEPRUNSA Quintos - Virtual Tarde - 2026'),
+        ('col_sec_esp', 'I.E.P Esparta (secundaria)')
+    ], string="Servicio Educativo")
+
+    universidad_postulada = fields.Selection([
+        ('unsa', 'Universidad Nacional de San Agustín'),
+        ('ucsp', 'Universidad Católica San Pablo'),
+        ('ucsm', 'Universidad Católica Santa María'),
+        ('otra', 'Otra Universidad'),
+    ], string="Universidad Postulada", default='unsa')
+
+    canal = fields.Selection([
+        ('whatsapp_1', 'Whastapp 1'),
+        ('whatsapp_2', 'Whastapp 2'),
+        ('messenger', 'Messenger'),
+        ('instagram', 'Instagram'),
+        ('manual', 'Manual'),
+    ], string="Canal", default='manual')
+
+
+    canal_icon_html = fields.Html(
+        string='Ícono del Canal',
+        compute='_compute_canal_icon_html',
+        sanitize=False,
+        store=False
+    )
+
+
+    @api.depends('canal')
+    def _compute_canal_icon_html(self):
+        # Diccionario con las rutas de las imágenes por canal
+        icon_map = {
+            'whatsapp_1': '/crm_custom_fields/static/src/img/whatsapp-logo_num_1.png',
+            'whatsapp_2': '/crm_custom_fields/static/src/img/whatsapp-logo_num_2.png',
+            #'email': '/crm_custom_fields/static/src/img/email-logo.png',
+            #'phone': '/crm_custom_fields/static/src/img/phone-logo.png',
+            'messenger': '/crm_custom_fields/static/src/img/facebook-logo.png',
+            'instagram': '/crm_custom_fields/static/src/img/instagram-logo.png',
+            'manual': '/crm_custom_fields/static/src/img/notas-manuales-logo.png',
+            #'web': '/crm_custom_fields/static/src/img/web-logo.png',
+        }
+        
+        for record in self:
+            if record.canal and record.canal in icon_map:
+                record.canal_icon_html = f'''
+                    <img src="{icon_map[record.canal]}" 
+                         alt="{record.canal}"/>
+                '''
+            else:
+                record.canal_icon_html = ''
+
+    es_activo_autonoma_bot = fields.Boolean(
+        string="Autonoma IA", 
+        default=True  # Define el valor inicial por defecto
+    )
+
+    can_edit_owner = fields.Boolean(
+        string="Puede Editar Vendedor",
+        compute='_compute_can_edit_owner',
+        store=False  # Debe ser dinámico, no almacenado
+    )
+
+    # ... (al final de tu clase, después de test_manual_sync) ...
+
+    def _compute_can_edit_owner(self):
+        """
+        Comprueba si el usuario actual tiene permiso para editar el campo 'user_id'.
+        """
+        current_user = self.env.user
+        
+        # Comprobamos si el usuario es Gerente de Ventas
+        is_manager = self.env.user.has_group('sales_team.group_sale_manager')
+
+        for record in self:
+            # Permitimos la edición SI:
+            # 1. El registro aún no tiene propietario (es nuevo o no asignado)
+            # 2. El usuario actual ES el propietario
+            # 3. El usuario actual ES un Gerente de Ventas
+            
+            if (not record.user_id) or (record.user_id == current_user) or (is_manager):
+                record.can_edit_owner = True
+            else:
+                record.can_edit_owner = False
+
+    
+    # -------------- HORA FECHA CREACION --------------
+
+    # Campo original
+    create_date = fields.Datetime('Fecha de Creación', readonly=True)
+
+    # Campo 1: Solo la Fecha (Día y Mes)
+    fecha_display = fields.Char(
+        string='Día/Mes',
+        compute='_compute_date_time_parts',
+        store=False, # No es necesario almacenarlo en la DB
+        search=False
+    )
+
+    # Campo 2: Solo la Hora
+    hora_display = fields.Char(
+        string='Hora',
+        compute='_compute_date_time_parts',
+        store=False,
+        search=False
+    )
+
+    def _compute_date_time_parts(self):
+        # Obtener el locale (idioma) del usuario actual para un formato correcto (ej: oct. vs oct)
+        lang_code = self.env.context.get('lang')
+        for record in self:
+            if record.create_date:
+                # 1. Convertir a datetime
+                dt_obj = fields.Datetime.context_timestamp(record, record.create_date) # <-- LÍNEA CORREGIDA
+                
+                # 2. Formatear la fecha: '4 oct.'
+                # Formato: Día abreviado del mes (ej. '%d %b.')
+                record.fecha_display = dt_obj.strftime("%d %b.").lower()
+
+                # 3. Formatear la hora: '1:04 p. m.'
+                # Formato: Hora (12h) con minutos, con indicador AM/PM y minúsculas (ej. '%I:%M %p')
+                # Nota: Odoo/Python manejan la conversión horaria del usuario.
+                record.hora_display = dt_obj.strftime("%I:%M %p").lower()
+            else:
+                record.fecha_display = False
+                record.hora_display = False
+
+
+
+    ultima_hora_respuesta_general = fields.Datetime(
+        string="Última Hora de Mensaje",
+        store=True,
+    )
+
+    # Campo 1: Solo la Fecha (Día y Mes)
+    fecha_display_respuesta = fields.Char(
+        string='Día/Mes',
+        compute='_compute_date_time_parts_respuesta',
+        store=False, # No es necesario almacenarlo en la DB
+        search=False
+    )
+
+    # Campo 2: Solo la Hora
+    hora_display_respuesta = fields.Char(
+        string='Hora',
+        compute='_compute_date_time_parts_respuesta',
+        store=False,
+        search=False
+    )
+
+    def _compute_date_time_parts_respuesta(self):
+        # Obtener el locale (idioma) del usuario actual para un formato correcto (ej: oct. vs oct)
+        lang_code = self.env.context.get('lang')
+        for record in self:
+            if record.ultima_hora_respuesta_general:
+                # 1. Convertir a datetime
+                dt_obj = fields.Datetime.context_timestamp(record, record.ultima_hora_respuesta_general)
+                
+                # 2. Formatear la fecha: '4 oct.'
+                # Formato: Día abreviado del mes (ej. '%d %b.')
+                record.fecha_display_respuesta = dt_obj.strftime("%d %b.").lower()
+
+                # 3. Formatear la hora: '1:04 p. m.'
+                # Formato: Hora (12h) con minutos, con indicador AM/PM y minúsculas (ej. '%I:%M %p')
+                # Nota: Odoo/Python manejan la conversión horaria del usuario.
+                record.hora_display_respuesta = dt_obj.strftime("%I:%M %p").lower()
+            else:
+                record.fecha_display_respuesta = False
+                record.hora_display_respuesta = False
+    
+    id_conversacion = fields.Integer(string="ID Conversación", index=True) # Agregar valor unico
+
+    # ========== SINCRONIZACIÓN CON CHATWOOT ==========
+
+    def write(self, vals):
+        """
+        SOBREESCRITO:
+        1. (NUEVO) Bloquea la reasignación si el usuario actual no es el propietario.
+        2. (Original) Detecta cuando cambia el vendedor y sincroniza con Chatwoot.
+        """
+        
+        # --- INICIO DEL NUEVO BLOQUEO DE REASIGNACIÓN ---
+        if 'user_id' in vals:
+            # Recorremos cada oportunidad que se está intentando modificar
+            for record in self:
+                current_owner = record.user_id
+                current_user = self.env.user
+                
+                # Verificamos si el usuario actual tiene permisos de Gerente de Ventas
+                # 'sales_team.group_sale_manager' es el ID de grupo estándar de Odoo
+                is_manager = self.env.user.has_group('sales_team.group_sale_manager')
+
+                # CONDICIÓN DE BLOQUEO:
+                # 1. La oportunidad TIENE un propietario (current_owner)
+                # 2. El usuario actual NO es ese propietario (current_owner != current_user)
+                # 3. El usuario actual TAMPOCO es un Gerente (not is_manager)
+                if current_owner and current_owner != current_user and not is_manager:
+                    # ¡Lanzamos un error y detenemos la operación!
+                    raise UserError(
+                        f"¡Reasignación Bloqueada!\n\n"
+                        f"Solo {current_owner.name} (el vendedor asignado) o un "
+                        f"Gerente de Ventas puede cambiar el propietario de esta oportunidad."
+                    )
+        # --- FIN DEL NUEVO BLOQUEO ---
+
+        # Si pasa el bloqueo, continuamos con el 'write' original
+        result = super(CrmLead, self).write(vals)
+        
+        # Si cambió el vendedor, sincronizamos
+        if 'user_id' in vals:
+            for record in self:
+                _logger.info(f"Cambio de vendedor detectado en Lead {record.id}")
+                
+                # Sincronizar con Chatwoot
+                sync_result = chatwoot_sync.sync_assignment_to_chatwoot(
+                    lead=record,
+                    new_user=record.user_id
+                )
+                
+                # Mostrar resultado en el chatter
+                record._notify_sync_result(sync_result)
+        
+        return result
+
+    def _notify_sync_result(self, result):
+        """
+        Muestra el resultado de la sincronización en el chatter (versión simple).
+        """
+        if result['success']:
+            # Caso Éxito
+            body = Markup(
+                f"<b>✅ Asignación sincronizada con Chatwoot</b><br/>"
+                f"<strong>Vendedor:</strong> {self.user_id.name}<br/>"
+                f"<strong>Email:</strong> {self.user_id.email}<br/>"
+                f"<strong>ID Conversación:</strong> {self.id_conversacion}<br/>"
+                f"<strong>ID Agente Chatwoot:</strong> {result['agent_id']}"
+            )
+        else:
+            # Caso Error
+            if result['found_agent']:
+                icon = "⚠️"
+                title = "Error de asignación en Chatwoot"
+            else:
+                icon = "❌"
+                title = "Error crítico de sincronización"
+            
+            # Recopilar datos de forma segura
+            vendedor = self.user_id.name if self.user_id else 'Sin asignar'
+            email = self.user_id.email if self.user_id and self.user_id.email else 'No configurado'
+            convo_id = self.id_conversacion if self.id_conversacion else 'No disponible'
+            error_msg = result.get('message', 'Error desconocido.')
+
+            body = Markup(
+                f"<b>{icon} {title}</b><br/>"
+                f"<strong>Error:</strong> {error_msg}<br/><br/>"
+                f"<strong>Detalles del intento:</strong><br/>"
+                f"<strong>Vendedor:</strong> {vendedor}<br/>"
+                f"<strong>Email:</strong> {email}<br/>"
+                f"<strong>ID Conversación:</strong> {convo_id}"
+            )
+
+        self.message_post(
+            body=body,
+            message_type='comment',
+            subtype_xmlid='mail.mt_note'
+        )
+
+    # ========== FUNCIÓN DE PRUEBA ==========
+
+    def test_chatwoot_connection(self):
+        """
+        Prueba la conexión con Chatwoot.
+        """
+        chatwoot_api.check_connection()
+
+
+    def test_manual_sync(self):
+        """
+        Prueba manual para ver si el código funciona.
+        """
+        _logger.info("🧪 BOTÓN DE PRUEBA PRESIONADO")
+        
+        if not self.user_id:
+            raise UserError("❌ Este lead no tiene vendedor asignado")
+        
+        if not self.id_conversacion:
+            raise UserError("❌ Este lead no tiene ID de conversación")
+        
+        _logger.info(f"Lead: {self.id}")
+        _logger.info(f"Vendedor: {self.user_id.name}")
+        _logger.info(f"Email: {self.user_id.email}")
+        _logger.info(f"ID Conversación: {self.id_conversacion}")
+        
+        # Llamar a la sincronización
+        sync_result = chatwoot_sync.sync_assignment_to_chatwoot(
+            lead=self,
+            new_user=self.user_id
+        )
+        
+        # Mostrar resultado
+        self._notify_sync_result(sync_result)
+        
+        raise UserError(f"✅ Prueba completada. Revisa el chatter para ver el resultado.\n\n{sync_result['message']}")
+
+---
+
+import requests
+import logging
+from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
+
+# --- .Configuración Centralizada de Chatwoot ---
+CHATWOOT_URL = "https://app-n8n-chatwoot.essftr.easypanel.host"
+CHATWOOT_API_TOKEN = "w7TS8qA8XVLkU3bo8m7E4i8E"
+CHATWOOT_ACCOUNT_ID = 2  # Cambiado a 2 basado en tu sugerencia
+
+def _get_headers():
+    """Crea los encabezados de autenticación para la API de Chatwoot."""
+    return {
+        'Content-Type': 'application/json',
+        'api_access_token': CHATWOOT_API_TOKEN
+    }
+
+
+def _auto_detect_account_id():
+    """
+    Intenta detectar automáticamente el Account ID correcto.
+    Prueba con IDs del 1 al 10.
+    Retorna el primer ID que funcione, o None si ninguno funciona.
+    """
+    headers = _get_headers()
+    
+    for account_id in range(1, 11):
+        try:
+            test_url = f"{CHATWOOT_URL}/api/v1/accounts/{account_id}/agents"
+            response = requests.get(test_url, headers=headers, timeout=5)
+            
+            if response.status_code == 200:
+                _logger.info(f"✓ Account ID detectado automáticamente: {account_id}")
+                return account_id
+        except:
+            continue
+    
+    return None
+
+def check_connection():
+    """
+    Verifica la conexión con la API de Chatwoot.
+    Detecta automáticamente el Account ID correcto si el configurado no funciona.
+    Lanza UserError en caso de éxito o fracaso para notificar al usuario.
+    """
+    _logger.info("Chatwoot API: Verificando conexión...")
+    
+    # Intentar con el Account ID configurado
+    test_url = f"{CHATWOOT_URL}/api/v1/accounts/{CHATWOOT_ACCOUNT_ID}/agents"
+    headers = _get_headers()
+
+    try:
+        response = requests.get(test_url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        # Chatwoot devuelve directamente la lista de agentes, no en 'payload'
+        agents_data = response.json()
+        agent_count = len(agents_data) if isinstance(agents_data, list) else 0
+        
+        # Mostrar información de los agentes encontrados
+        agent_info = "\n\n✅ Agentes encontrados:\n"
+        if isinstance(agents_data, list):
+            for agent in agents_data:
+                agent_info += f"  • {agent.get('name', 'Sin nombre')} (Email: {agent.get('email', 'N/A')}, ID: {agent.get('id', 'N/A')})\n"
+        
+        raise UserError(f"🎉 ¡ÉXITO! Conexión correcta con Chatwoot.\n\n"
+                        f"📍 URL: {test_url}\n"
+                        f"✓ Código: {response.status_code}\n"
+                        f"✓ Account ID: {CHATWOOT_ACCOUNT_ID}\n"
+                        f"✓ Total de agentes: {agent_count}{agent_info}")
+
+    except requests.exceptions.HTTPError as e:
+        # Si es error 404, intentar detectar el Account ID correcto
+        if e.response.status_code == 404:
+            _logger.warning(f"Account ID {CHATWOOT_ACCOUNT_ID} no funciona, intentando detectar automáticamente...")
+            detected_id = _auto_detect_account_id()
+            
+            if detected_id:
+                error_details = f"❌ El ACCOUNT_ID configurado ({CHATWOOT_ACCOUNT_ID}) no existe.\n\n"
+                error_details += f"✅ SOLUCIÓN ENCONTRADA:\n"
+                error_details += f"   Tu Account ID correcto es: {detected_id}\n\n"
+                error_details += f"Cambia esta línea en chatwoot_api.py:\n"
+                error_details += f"   CHATWOOT_ACCOUNT_ID = {detected_id}\n"
+            else:
+                error_details = f"❌ El ACCOUNT_ID {CHATWOOT_ACCOUNT_ID} no existe.\n\n"
+                error_details += f"URL intentada: {test_url}\n\n"
+                error_details += f"Posibles soluciones:\n"
+                error_details += f"1. Ve a tu Chatwoot → Settings → Account Settings\n"
+                error_details += f"2. O mira la URL cuando estés en Chatwoot: .../app/accounts/X/...\n"
+                error_details += f"3. Ese número 'X' es tu Account ID correcto\n"
+        else:
+            error_details = f"URL intentada: {test_url}\n"
+            error_details += f"Código: {e.response.status_code}\n"
+            
+            if e.response.status_code == 401:
+                error_details += "\n❌ Error: No autorizado.\n"
+                error_details += "Solución: Revisa tu 'CHATWOOT_API_TOKEN' en chatwoot_api.py.\n"
+                error_details += "Debes usar un token de API válido (no un token de acceso personal)."
+            else:
+                try:
+                    error_details += f"\nRespuesta del servidor:\n{e.response.json()}"
+                except:
+                    error_details += f"\nRespuesta del servidor:\n{e.response.text}"
+        
+        raise UserError(f"¡ERROR DE CONEXIÓN! Chatwoot respondió con un errored.\n\n{error_details}")
+
+    except requests.exceptions.RequestException as e:
+        _logger.error(f"Error de red al conectar con Chatwoot: {e}")
+        raise UserError(f"¡ERROR DE RED! No se pudo conectar a Chatwoot.\n\n"
+                        f"URL intentada: {test_url}\n"
+                        f"Revisa:\n"
+                        f"1. La URL base: {CHATWOOT_URL}\n"
+                        f"2. La conexión a internet de tu servidor Odoo\n"
+                        f"3. Que no haya firewall bloqueando la conexión\n\n"
+                        f"Error técnico: {e}")
+
+
+def get_agent_by_email(email):
+    """
+    Busca un agente en Chatwoot por su correo electrónico.
+    Retorna el ID del agente si lo encuentra, None si no existe.
+    """
+    _logger.info(f"Chatwoot API: Buscando agente con email '{email}'...")
+    
+    url = f"{CHATWOOT_URL}/api/v1/accounts/{CHATWOOT_ACCOUNT_ID}/agents"
+    headers = _get_headers()
+    
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        agents = response.json()
+        
+        if isinstance(agents, list):
+            for agent in agents:
+                if agent.get('email', '').lower() == email.lower():
+                    _logger.info(f"✓ Agente encontrado: {agent.get('name')} (ID: {agent.get('id')})")
+                    return agent.get('id')
+        
+        _logger.warning(f"✗ No se encontró ningún agente con el email '{email}'")
+        return None
+        
+    except Exception as e:
+        _logger.error(f"Error al buscar agente en Chatwoot: {e}")
+        return None
+
+
+def assign_conversation_to_agent(conversation_id, agent_id):
+    """
+    Asigna una conversación de Chatwoot a un agente específico.
+    
+    Args:
+        conversation_id (int): ID de la conversación en Chatwoot
+        agent_id (int): ID del agente en Chatwoot
+    
+    Returns:
+        bool: True si la asignación fue exitosa, False en caso contrario
+    """
+    _logger.info(f"Chatwoot API: Asignando conversación {conversation_id} al agente {agent_id}...")
+    
+    url = f"{CHATWOOT_URL}/api/v1/accounts/{CHATWOOT_ACCOUNT_ID}/conversations/{conversation_id}/assignments"
+    headers = _get_headers()
+    
+    payload = {
+        "assignee_id": agent_id
+    }
+    
+    try:
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        _logger.info(f"✓ Conversación {conversation_id} asignada exitosamente al agente {agent_id}")
+        return True
+        
+    except requests.exceptions.HTTPError as e:
+        _logger.error(f"Error HTTP al asignar conversación: {e.response.status_code} - {e.response.text}")
+        return False
+    except Exception as e:
+        _logger.error(f"Error al asignar conversación en Chatwoot: {e}")
+        return False
