@@ -35,6 +35,9 @@ class LeadAssignmentController(http.Controller):
         
         Llamada de ejemplo desde n8n:
         GET https://tu-odoo.com/api/v1/get_available_salesperson?token=tu-clave-secreta-para-n8n
+        
+        Respuesta de ejemplo (éxito):
+        {"status": 200, "user_id": 14, "user_name": "Vendedor C"}
         """
         
         # 1. Seguridad: Verificar el token
@@ -126,7 +129,25 @@ class LeadAssignmentController(http.Controller):
 
             # === PASO 4: Devolver la respuesta ===
             
-            response_data = {"status": 200, "user_id": best_user_id}
+            # --- INICIO DE LA MODIFICACIÓN ---
+            if not best_user_id:
+                raise Exception("No se pudo determinar un vendedor.")
+
+            # Buscar el registro del usuario para obtener su nombre
+            user_record = request.env['res.users'].sudo().browse(best_user_id)
+            if not user_record.exists():
+                raise Exception(f"El vendedor ganador con ID {best_user_id} no existe.")
+
+            user_name = user_record.name
+            
+            # Añadir el 'user_name' a la respuesta
+            response_data = {
+                "status": 200,
+                "user_id": best_user_id,
+                "user_name": user_name
+            }
+            # --- FIN DE LA MODIFICACIÓN ---
+            
             return request.make_response(
                 json.dumps(response_data),
                 headers=[('Content-Type', 'application/json')],
@@ -141,3 +162,5 @@ class LeadAssignmentController(http.Controller):
                 headers=[('Content-Type', 'application/json')],
                 status=500
             )
+
+# https://odoo-crm-jpawaj-odoo.essftr.easypanel.host/api/v1/get_available_salesperson?token=tu-clave-secreta-para-n8n
