@@ -107,7 +107,7 @@ class CrmLead(models.Model):
         ('messenger', 'Messenger'),
         ('instagram', 'Instagram'),
         ('manual', 'Manual'),
-    ], string="Canal")
+    ], string="Canal", default='manual')
 
 
     canal_icon_html = fields.Html(
