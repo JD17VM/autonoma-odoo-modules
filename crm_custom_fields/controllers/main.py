@@ -10,9 +10,11 @@ MATRICULADO_STAGE_ID = 5    # ID específico de Matriculados para el desempate
 # Ejemplo: SALESPERSON_IDS = [10, 12, 14]
 SALESPERSON_IDS = [
     # Reemplaza con tus IDs de vendedores reales
-    10, # ID de Vendedor A
-    12, # ID de Vendedor B
-    14, # ID de Vendedor C
+    7, # ID de Vendedor A
+    9, # ID de Vendedor B
+    10, # ID de Vendedor C
+    11, # ID de Vendedor D
+    12, # ID de Meta Revisor
 ]
 
 # Esto es una clave secreta simple para que solo tu n8n pueda usar esta URL
