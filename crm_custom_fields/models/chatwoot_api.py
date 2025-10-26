@@ -179,3 +179,209 @@ def assign_conversation_to_agent(conversation_id, agent_id):
     except Exception as e:
         _logger.error(f"Error al asignar conversación en Chatwoot: {e}")
         return False
+    
+# Agregar al final de chatwoot_api.py
+
+def verificar_conversacion_existe(conversation_id):
+    """
+    Verifica si una conversación existe y está accesible en Chatwoot.
+    
+    Returns:
+        dict: {
+            'existe': bool,
+            'inbox_id': int or None,
+            'status': str or None,
+            'assignee_id': int or None,
+            'details': dict
+        }
+    """
+    _logger.info(f"Verificando conversación {conversation_id}...")
+    
+    url = f"{CHATWOOT_URL}/api/v1/accounts/{CHATWOOT_ACCOUNT_ID}/conversations/{conversation_id}"
+    headers = _get_headers()
+    
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code == 404:
+            _logger.warning(f"❌ Conversación {conversation_id} NO EXISTE")
+            return {
+                'existe': False,
+                'inbox_id': None,
+                'status': None,
+                'assignee_id': None,
+                'details': {'error': 'Conversación no encontrada'}
+            }
+        
+        response.raise_for_status()
+        data = response.json()
+        
+        resultado = {
+            'existe': True,
+            'inbox_id': data.get('inbox_id'),
+            'status': data.get('status'),
+            'assignee_id': data.get('meta', {}).get('assignee', {}).get('id'),
+            'details': data
+        }
+        
+        _logger.info(f"✅ Conversación {conversation_id} existe:")
+        _logger.info(f"   Inbox ID: {resultado['inbox_id']}")
+        _logger.info(f"   Status: {resultado['status']}")
+        _logger.info(f"   Asignado a: {resultado['assignee_id']}")
+        
+        return resultado
+        
+    except Exception as e:
+        _logger.error(f"Error al verificar conversación: {e}")
+        return {
+            'existe': False,
+            'inbox_id': None,
+            'status': None,
+            'assignee_id': None,
+            'details': {'error': str(e)}
+        }
+
+
+def listar_inboxes():
+    """
+    Lista todas las inboxes disponibles en la cuenta de Chatwoot.
+    
+    Returns:
+        list: Lista de inboxes con su información
+    """
+    _logger.info("Listando inboxes de Chatwoot...")
+    
+    url = f"{CHATWOOT_URL}/api/v1/accounts/{CHATWOOT_ACCOUNT_ID}/inboxes"
+    headers = _get_headers()
+    
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        inboxes = response.json().get('payload', [])
+        
+        _logger.info(f"✅ Se encontraron {len(inboxes)} inboxes:")
+        for inbox in inboxes:
+            _logger.info(f"   ID: {inbox.get('id')} - Nombre: {inbox.get('name')} - Canal: {inbox.get('channel_type')}")
+        
+        return inboxes
+        
+    except Exception as e:
+        _logger.error(f"Error al listar inboxes: {e}")
+        return []
+
+
+def verificar_agente_en_inbox(agent_id, inbox_id):
+    """
+    Verifica si un agente tiene acceso a una inbox específica.
+    
+    Returns:
+        bool: True si el agente tiene acceso, False si no
+    """
+    _logger.info(f"Verificando acceso del agente {agent_id} a inbox {inbox_id}...")
+    
+    url = f"{CHATWOOT_URL}/api/v1/accounts/{CHATWOOT_ACCOUNT_ID}/inbox_members/{inbox_id}"
+    headers = _get_headers()
+    
+    try:
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        members = response.json()
+        agent_ids = [member.get('id') for member in members if isinstance(members, list)]
+        
+        tiene_acceso = agent_id in agent_ids
+        
+        if tiene_acceso:
+            _logger.info(f"✅ Agente {agent_id} TIENE acceso a inbox {inbox_id}")
+        else:
+            _logger.warning(f"❌ Agente {agent_id} NO tiene acceso a inbox {inbox_id}")
+            _logger.info(f"   Agentes con acceso: {agent_ids}")
+        
+        return tiene_acceso
+        
+    except Exception as e:
+        _logger.error(f"Error al verificar acceso: {e}")
+        return False
+
+
+def diagnostico_completo_conversacion(conversation_id, agent_email):
+    """
+    Realiza un diagnóstico completo de por qué una asignación puede estar fallando.
+    
+    Args:
+        conversation_id: ID de la conversación en Chatwoot
+        agent_email: Email del agente que se intenta asignar
+    
+    Returns:
+        dict: Resultado del diagnóstico con problemas detectados
+    """
+    _logger.info("=" * 60)
+    _logger.info("🔍 DIAGNÓSTICO COMPLETO DE CONVERSACIÓN Y AGENTE")
+    _logger.info("=" * 60)
+    
+    resultado = {
+        'conversacion_existe': False,
+        'agente_existe': False,
+        'agente_tiene_acceso': False,
+        'problemas': [],
+        'soluciones': []
+    }
+    
+    # 1. Verificar conversación
+    _logger.info("1️⃣ Verificando conversación...")
+    conv_info = verificar_conversacion_existe(conversation_id)
+    resultado['conversacion_existe'] = conv_info['existe']
+    resultado['conversacion_info'] = conv_info
+    
+    if not conv_info['existe']:
+        resultado['problemas'].append(f"❌ La conversación {conversation_id} NO EXISTE en Chatwoot")
+        resultado['soluciones'].append(
+            "→ Esta conversación probablemente es de una inbox antigua que fue eliminada o reconectada. "
+            "Necesitas actualizar el id_conversacion del lead en Odoo con la nueva conversación."
+        )
+        return resultado
+    
+    _logger.info(f"✅ Conversación existe en Inbox {conv_info['inbox_id']}")
+    
+    # 2. Verificar agente
+    _logger.info("2️⃣ Verificando agente...")
+    agent_id = get_agent_by_email(agent_email)
+    resultado['agente_existe'] = bool(agent_id)
+    resultado['agent_id'] = agent_id
+    
+    if not agent_id:
+        resultado['problemas'].append(f"❌ No existe agente con email '{agent_email}' en Chatwoot")
+        resultado['soluciones'].append(
+            f"→ Verifica que el email '{agent_email}' esté registrado exactamente así en Chatwoot. "
+            "Revisa Settings → Agents en Chatwoot."
+        )
+        return resultado
+    
+    _logger.info(f"✅ Agente existe con ID {agent_id}")
+    
+    # 3. Verificar acceso a inbox
+    _logger.info("3️⃣ Verificando acceso del agente a la inbox...")
+    tiene_acceso = verificar_agente_en_inbox(agent_id, conv_info['inbox_id'])
+    resultado['agente_tiene_acceso'] = tiene_acceso
+    
+    if not tiene_acceso:
+        resultado['problemas'].append(
+            f"❌ El agente {agent_id} ({agent_email}) NO tiene acceso a la Inbox {conv_info['inbox_id']}"
+        )
+        resultado['soluciones'].append(
+            f"→ En Chatwoot, ve a Settings → Inboxes → [Inbox {conv_info['inbox_id']}] → "
+            "Collaborators y agrega al agente a esa inbox."
+        )
+        return resultado
+    
+    _logger.info(f"✅ Agente tiene acceso a la inbox")
+    
+    # Si llegamos aquí, todo debería funcionar
+    resultado['problemas'].append("✅ No se detectaron problemas. La asignación debería funcionar.")
+    
+    _logger.info("=" * 60)
+    _logger.info("FIN DEL DIAGNÓSTICO")
+    _logger.info("=" * 60)
+    
+    return resultado

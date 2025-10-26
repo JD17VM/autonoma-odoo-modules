@@ -392,3 +392,138 @@ class CrmLead(models.Model):
         self._notify_sync_result(sync_result)
         
         raise UserError(f"✅ Prueba completada. Revisa el chatter para ver el resultado.\n\n{sync_result['message']}")
+
+
+# Agrega esta función al final de tu clase CrmLead en models.py
+
+def diagnosticar_vendedor_actual(self):
+    """
+    Botón de diagnóstico para el vendedor C o cualquier otro vendedor.
+    Muestra información detallada en el chatter.
+    """
+    from . import chatwoot_sync
+    
+    if not self.user_id:
+        raise UserError("❌ Este lead no tiene vendedor asignado")
+    
+    # Ejecutar diagnóstico
+    resultado = chatwoot_sync.diagnosticar_vendedor(self.env, self.user_id.name)
+
+
+def diagnostico_completo_lead(self):
+    """
+    🔍 DIAGNÓSTICO COMPLETO DE TODO EL PROBLEMA
+    Identifica EXACTAMENTE por qué falla la asignación.
+    """
+    if not self.user_id:
+        raise UserError("❌ Este lead no tiene vendedor asignado")
+    
+    if not self.id_conversacion:
+        raise UserError("❌ Este lead no tiene ID de conversación")
+    
+    # Ejecutar diagnóstico completo
+    resultado = chatwoot_api.diagnostico_completo_conversacion(
+        conversation_id=self.id_conversacion,
+        agent_email=self.user_id.email
+    )
+    
+    # Construir mensaje
+    mensaje = "<h3>🔍 DIAGNÓSTICO COMPLETO</h3>"
+    mensaje += f"<b>Lead:</b> {self.name} (ID: {self.id})<br/>"
+    mensaje += f"<b>Vendedor:</b> {self.user_id.name}<br/>"
+    mensaje += f"<b>Email:</b> {self.user_id.email}<br/>"
+    mensaje += f"<b>ID Conversación:</b> {self.id_conversacion}<br/><br/>"
+    
+    # Estado de la conversación
+    if resultado['conversacion_existe']:
+        conv_info = resultado['conversacion_info']
+        mensaje += f"✅ <b>Conversación:</b> EXISTE<br/>"
+        mensaje += f"   • Inbox ID: {conv_info['inbox_id']}<br/>"
+        mensaje += f"   • Status: {conv_info['status']}<br/>"
+        mensaje += f"   • Asignado a: {conv_info['assignee_id'] or 'Sin asignar'}<br/><br/>"
+    else:
+        mensaje += f"❌ <b>Conversación:</b> NO EXISTE<br/><br/>"
+    
+    # Estado del agente
+    if resultado['agente_existe']:
+        mensaje += f"✅ <b>Agente:</b> EXISTE (ID: {resultado['agent_id']})<br/>"
+        if resultado['agente_tiene_acceso']:
+            mensaje += f"✅ <b>Acceso a Inbox:</b> SÍ<br/><br/>"
+        else:
+            mensaje += f"❌ <b>Acceso a Inbox:</b> NO<br/><br/>"
+    else:
+        mensaje += f"❌ <b>Agente:</b> NO EXISTE<br/><br/>"
+    
+    # Problemas detectados
+    if resultado['problemas']:
+        mensaje += "<h4>⚠️ PROBLEMAS DETECTADOS:</h4><ul>"
+        for problema in resultado['problemas']:
+            mensaje += f"<li>{problema}</li>"
+        mensaje += "</ul>"
+    
+    # Soluciones
+    if resultado['soluciones']:
+        mensaje += "<h4>💡 SOLUCIONES:</h4><ul>"
+        for solucion in resultado['soluciones']:
+            mensaje += f"<li>{solucion}</li>"
+        mensaje += "</ul>"
+    
+    self.message_post(
+        body=Markup(mensaje),
+        message_type='comment',
+        subtype_xmlid='mail.mt_note'
+    )
+    
+    # Resumen en popup
+    resumen = "✅ TODO OK" if not resultado['soluciones'] else "❌ PROBLEMAS ENCONTRADOS"
+    raise UserError(f"{resumen}\n\nRevisa el chatter para ver el diagnóstico completo.")
+    
+    # Construir mensaje para el chatter
+    mensaje = f"<h3>🔍 DIAGNÓSTICO DEL VENDEDOR</h3>"
+    mensaje += f"<b>Vendedor:</b> {resultado['vendedor_nombre']}<br/>"
+    mensaje += f"<b>ID Odoo:</b> {resultado['vendedor_id']}<br/>"
+    mensaje += f"<b>Email:</b> {resultado['vendedor_email'] or '❌ SIN EMAIL'}<br/>"
+    mensaje += f"<b>Email válido:</b> {'✅ Sí' if resultado['email_valido'] else '❌ No'}<br/>"
+    
+    if resultado['agente_chatwoot']:
+        mensaje += f"<b>Agente Chatwoot:</b> ✅ Encontrado (ID: {resultado['agente_chatwoot']})<br/>"
+    else:
+        mensaje += f"<b>Agente Chatwoot:</b> ❌ NO encontrado en Chatwoot<br/>"
+    
+    mensaje += f"<br/><b>Leads asignados:</b> {len(resultado['leads_asignados'])}<br/>"
+    
+    # Mostrar problemas
+    if resultado['problemas']:
+        mensaje += "<br/><h4>⚠️ PROBLEMAS DETECTADOS:</h4><ul>"
+        for problema in resultado['problemas']:
+            mensaje += f"<li>{problema}</li>"
+        mensaje += "</ul>"
+    else:
+        mensaje += "<br/>✅ No se detectaron problemas con este vendedor"
+    
+    # Mostrar info de leads
+    if resultado['leads_asignados']:
+        mensaje += "<br/><h4>📋 Detalle de Leads:</h4><ul>"
+        for lead_info in resultado['leads_asignados'][:5]:  # Mostrar solo los primeros 5
+            mensaje += f"<li>Lead {lead_info['lead_id']}: {lead_info['lead_nombre']} - "
+            if lead_info['tiene_conversacion']:
+                mensaje += f"✅ Conversación: {lead_info['id_conversacion']}"
+            else:
+                mensaje += f"❌ {lead_info.get('problema', 'Sin conversación')}"
+            mensaje += "</li>"
+        if len(resultado['leads_asignados']) > 5:
+            mensaje += f"<li>... y {len(resultado['leads_asignados']) - 5} más</li>"
+        mensaje += "</ul>"
+    
+    # Publicar en el chatter
+    self.message_post(
+        body=Markup(mensaje),
+        message_type='comment',
+        subtype_xmlid='mail.mt_note'
+    )
+    
+    # También mostrar en popup
+    raise UserError(f"✅ Diagnóstico completado. Revisa el chatter para ver los resultados.\n\n"
+                   f"Vendedor: {resultado['vendedor_nombre']}\n"
+                   f"Email: {resultado['vendedor_email']}\n"
+                   f"Agente Chatwoot: {'✅ Encontrado' if resultado['agente_chatwoot'] else '❌ NO encontrado'}")
