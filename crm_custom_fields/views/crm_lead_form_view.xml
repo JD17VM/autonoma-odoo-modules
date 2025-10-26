@@ -84,6 +84,11 @@
                 <xpath expr="//field[@name='user_id']" position="attributes">
                     <attribute name="readonly">can_edit_owner == False</attribute>
                 </xpath>
+
+                <button name="diagnostico_completo_lead" 
+                    string="🔍 Diagnóstico Completo" 
+                    type="object" 
+                    class="btn-danger"/>
             </field>
         </record>
     </data>
