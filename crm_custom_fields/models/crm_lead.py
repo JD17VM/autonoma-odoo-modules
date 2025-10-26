@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from markupsafe import Markup
 
 from odoo.exceptions import UserError # Es buena práctica mantenerlo por si lo usas en el futuro.
 
@@ -262,7 +263,7 @@ class CrmLead(models.Model):
         """
         if result['success']:
             # Caso Éxito
-            body = (
+            body = Markup(
                 f"<b>✅ Asignación sincronizada con Chatwoot</b><br/>"
                 f"<strong>Vendedor:</strong> {self.user_id.name}<br/>"
                 f"<strong>Email:</strong> {self.user_id.email}<br/>"
@@ -282,9 +283,9 @@ class CrmLead(models.Model):
             vendedor = self.user_id.name if self.user_id else 'Sin asignar'
             email = self.user_id.email if self.user_id and self.user_id.email else 'No configurado'
             convo_id = self.id_conversacion if self.id_conversacion else 'No disponible'
-            error_msg = result.get('message', 'Error desconocido.') # Usar .get para más seguridad
+            error_msg = result.get('message', 'Error desconocido.')
 
-            body = (
+            body = Markup(
                 f"<b>{icon} {title}</b><br/>"
                 f"<strong>Error:</strong> {error_msg}<br/><br/>"
                 f"<strong>Detalles del intento:</strong><br/>"
