@@ -82,7 +82,7 @@
                 </xpath>
 
                 <xpath expr="//field[@name='user_id']" position="attributes">
-                    <attribute name="attrs">{'readonly': [('can_edit_owner', '=', False)]}</attribute>
+                    <attribute name="readonly">can_edit_owner == False</attribute>
                 </xpath>
             </field>
         </record>
