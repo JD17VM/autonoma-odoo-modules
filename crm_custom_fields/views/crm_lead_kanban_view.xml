@@ -12,6 +12,14 @@
                 <attribute name="invisible">1</attribute>
             </xpath>
 
+            <xpath expr="//field[@name='priority']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='activity_ids']" position="attributes">
+                <attribute name="invisible">1</attribute>
+            </xpath>
+
             <xpath expr="//div[@class='o_kanban_card_crm_lead_revenue']" position="before">
                 <div class="d-flex mb-2 cabecera_card">
                     <field name="canal" invisible="1"/>
