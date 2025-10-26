@@ -258,43 +258,46 @@ class CrmLead(models.Model):
 
     def _notify_sync_result(self, result):
         """
-        Muestra el resultado de la sincronización en el chatter.
+        Muestra el resultado de la sincronización en el chatter (versión simple).
         """
         if result['success']:
-            self.message_post(
-                body=f"<div style='padding: 10px; background-color: #d4edda; border-left: 4px solid #28a745;'>"
-                    f"<h4 style='margin: 0 0 10px 0; color: #155724;'>✅ Asignación sincronizada con Chatwoot</h4>"
-                    f"<p style='margin: 5px 0;'><strong>Vendedor:</strong> {self.user_id.name}</p>"
-                    f"<p style='margin: 5px 0;'><strong>Email:</strong> {self.user_id.email}</p>"
-                    f"<p style='margin: 5px 0;'><strong>ID Conversación:</strong> {self.id_conversacion}</p>"
-                    f"<p style='margin: 5px 0;'><strong>ID Agente Chatwoot:</strong> {result['agent_id']}</p>"
-                    f"</div>",
-                message_type='comment',
-                subtype_xmlid='mail.mt_note'
+            # Caso Éxito
+            body = (
+                f"<b>✅ Asignación sincronizada con Chatwoot</b><br/>"
+                f"<strong>Vendedor:</strong> {self.user_id.name}<br/>"
+                f"<strong>Email:</strong> {self.user_id.email}<br/>"
+                f"<strong>ID Conversación:</strong> {self.id_conversacion}<br/>"
+                f"<strong>ID Agente Chatwoot:</strong> {result['agent_id']}"
             )
         else:
+            # Caso Error
             if result['found_agent']:
                 icon = "⚠️"
-                color = "#fff3cd"
-                border_color = "#ffc107"
-                text_color = "#856404"
+                title = "Error de asignación en Chatwoot"
             else:
                 icon = "❌"
-                color = "#f8d7da"
-                border_color = "#dc3545"
-                text_color = "#721c24"
+                title = "Error crítico de sincronización"
             
-            self.message_post(
-                body=f"<div style='padding: 10px; background-color: {color}; border-left: 4px solid {border_color};'>"
-                    f"<h4 style='margin: 0 0 10px 0; color: {text_color};'>{icon} Error en sincronización con Chatwoot</h4>"
-                    f"<p style='margin: 5px 0;'><strong>Vendedor:</strong> {self.user_id.name if self.user_id else 'Sin asignar'}</p>"
-                    f"<p style='margin: 5px 0;'><strong>Email:</strong> {self.user_id.email if self.user_id and self.user_id.email else 'No configurado'}</p>"
-                    f"<p style='margin: 5px 0;'><strong>ID Conversación:</strong> {self.id_conversacion if self.id_conversacion else 'No disponible'}</p>"
-                    f"<p style='margin: 10px 0 5px 0; color: {text_color};'><strong>Error:</strong> {result['message']}</p>"
-                    f"</div>",
-                message_type='comment',
-                subtype_xmlid='mail.mt_note'
+            # Recopilar datos de forma segura
+            vendedor = self.user_id.name if self.user_id else 'Sin asignar'
+            email = self.user_id.email if self.user_id and self.user_id.email else 'No configurado'
+            convo_id = self.id_conversacion if self.id_conversacion else 'No disponible'
+            error_msg = result.get('message', 'Error desconocido.') # Usar .get para más seguridad
+
+            body = (
+                f"<b>{icon} {title}</b><br/>"
+                f"<strong>Error:</strong> {error_msg}<br/><br/>"
+                f"<strong>Detalles del intento:</strong><br/>"
+                f"<strong>Vendedor:</strong> {vendedor}<br/>"
+                f"<strong>Email:</strong> {email}<br/>"
+                f"<strong>ID Conversación:</strong> {convo_id}"
             )
+
+        self.message_post(
+            body=body,
+            message_type='comment',
+            subtype_xmlid='mail.mt_note'
+        )
 
     # ========== FUNCIÓN DE PRUEBA ==========
 
