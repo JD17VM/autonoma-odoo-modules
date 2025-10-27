@@ -60,9 +60,14 @@
                         <field name="partner_id"/>
                     </group>
                     <button name="diagnostico_completo_lead" 
-                    string="🔍 Diagnóstico Completo" 
-                    type="object" 
-                    class="btn-danger"/>
+                            string="🔍 Diagnosticar" 
+                            type="object" 
+                            class="btn-warning"/>
+
+                    <button name="listar_inboxes_chatwoot" 
+                            string="📋 Ver Inboxes" 
+                            type="object" 
+                            class="btn-info"/>
                 </xpath>
                 
                 <xpath expr="//label[@for='date_deadline']" position="attributes">

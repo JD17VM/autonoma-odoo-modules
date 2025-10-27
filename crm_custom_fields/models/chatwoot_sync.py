@@ -93,3 +93,47 @@ def sync_assignment_to_chatwoot(lead, new_user):
             'found_agent': True,
             'agent_id': agent_id
         }
+
+def diagnosticar_vendedor(odoo_env, vendedor_name):
+    """
+    Función de diagnóstico para identificar problemas con un vendedor específico.
+    """
+    _logger.info(f"🔍 Diagnosticando vendedor: {vendedor_name}")
+    
+    vendedor = odoo_env['res.users'].search([('name', '=', vendedor_name)], limit=1)
+    
+    if not vendedor:
+        return {'error': f"Vendedor '{vendedor_name}' no encontrado"}
+    
+    resultado = {
+        'vendedor_id': vendedor.id,
+        'vendedor_nombre': vendedor.name,
+        'vendedor_email': vendedor.email,
+        'email_valido': bool(vendedor.email),
+        'leads_asignados': [],
+        'agente_chatwoot': None,
+        'problemas': []
+    }
+    
+    if not vendedor.email:
+        resultado['problemas'].append("❌ Sin email configurado")
+    else:
+        agent_id = chatwoot_api.get_agent_by_email(vendedor.email)
+        resultado['agente_chatwoot'] = agent_id
+        if not agent_id:
+            resultado['problemas'].append(f"❌ Email '{vendedor.email}' no existe en Chatwoot")
+    
+    # Buscar leads
+    leads = odoo_env['crm.lead'].search([('user_id', '=', vendedor.id)])
+    for lead in leads:
+        lead_info = {
+            'lead_id': lead.id,
+            'lead_nombre': lead.name,
+            'id_conversacion': lead.id_conversacion,
+            'tiene_conversacion': bool(lead.id_conversacion and lead.id_conversacion > 0)
+        }
+        if not lead_info['tiene_conversacion']:
+            lead_info['problema'] = "Sin ID de conversación válido"
+        resultado['leads_asignados'].append(lead_info)
+    
+    return resultado

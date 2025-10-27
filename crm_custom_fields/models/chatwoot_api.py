@@ -182,6 +182,8 @@ def assign_conversation_to_agent(conversation_id, agent_id):
     
 # Agregar al final de chatwoot_api.py
 
+# Agregar al final de chatwoot_api.py
+
 def verificar_conversacion_existe(conversation_id):
     """
     Verifica si una conversación existe y está accesible en Chatwoot.
@@ -308,16 +310,9 @@ def verificar_agente_en_inbox(agent_id, inbox_id):
 def diagnostico_completo_conversacion(conversation_id, agent_email):
     """
     Realiza un diagnóstico completo de por qué una asignación puede estar fallando.
-    
-    Args:
-        conversation_id: ID de la conversación en Chatwoot
-        agent_email: Email del agente que se intenta asignar
-    
-    Returns:
-        dict: Resultado del diagnóstico con problemas detectados
     """
     _logger.info("=" * 60)
-    _logger.info("🔍 DIAGNÓSTICO COMPLETO DE CONVERSACIÓN Y AGENTE")
+    _logger.info("🔍 DIAGNÓSTICO COMPLETO")
     _logger.info("=" * 60)
     
     resultado = {
@@ -335,9 +330,9 @@ def diagnostico_completo_conversacion(conversation_id, agent_email):
     resultado['conversacion_info'] = conv_info
     
     if not conv_info['existe']:
-        resultado['problemas'].append(f"❌ La conversación {conversation_id} NO EXISTE en Chatwoot")
+        resultado['problemas'].append(f"La conversación {conversation_id} NO EXISTE en Chatwoot")
         resultado['soluciones'].append(
-            "→ Esta conversación probablemente es de una inbox antigua que fue eliminada o reconectada. "
+            "Esta conversación es de una inbox antigua que fue eliminada o reconectada. "
             "Necesitas actualizar el id_conversacion del lead en Odoo con la nueva conversación."
         )
         return resultado
@@ -351,10 +346,9 @@ def diagnostico_completo_conversacion(conversation_id, agent_email):
     resultado['agent_id'] = agent_id
     
     if not agent_id:
-        resultado['problemas'].append(f"❌ No existe agente con email '{agent_email}' en Chatwoot")
+        resultado['problemas'].append(f"No existe agente con email '{agent_email}' en Chatwoot")
         resultado['soluciones'].append(
-            f"→ Verifica que el email '{agent_email}' esté registrado exactamente así en Chatwoot. "
-            "Revisa Settings → Agents en Chatwoot."
+            f"Verifica que el email '{agent_email}' esté registrado exactamente así en Chatwoot (Settings → Agents)."
         )
         return resultado
     
@@ -367,21 +361,19 @@ def diagnostico_completo_conversacion(conversation_id, agent_email):
     
     if not tiene_acceso:
         resultado['problemas'].append(
-            f"❌ El agente {agent_id} ({agent_email}) NO tiene acceso a la Inbox {conv_info['inbox_id']}"
+            f"El agente ({agent_email}) NO tiene acceso a la Inbox {conv_info['inbox_id']}"
         )
         resultado['soluciones'].append(
-            f"→ En Chatwoot, ve a Settings → Inboxes → [Inbox {conv_info['inbox_id']}] → "
-            "Collaborators y agrega al agente a esa inbox."
+            f"En Chatwoot: Settings → Inboxes → [Selecciona la inbox {conv_info['inbox_id']}] → "
+            "Tab 'Collaborators' → Agrega al agente."
         )
         return resultado
     
     _logger.info(f"✅ Agente tiene acceso a la inbox")
     
-    # Si llegamos aquí, todo debería funcionar
-    resultado['problemas'].append("✅ No se detectaron problemas. La asignación debería funcionar.")
+    # Si llegamos aquí, todo OK
+    resultado['problemas'].append("✅ Configuración correcta")
     
-    _logger.info("=" * 60)
-    _logger.info("FIN DEL DIAGNÓSTICO")
     _logger.info("=" * 60)
     
     return resultado
