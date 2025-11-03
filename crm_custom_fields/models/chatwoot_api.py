@@ -7,7 +7,7 @@ _logger = logging.getLogger(__name__)
 # --- .Configuración Centralizada de Chatwoot ---
 CHATWOOT_URL = "https://app-n8n-chatwoot.essftr.easypanel.host"
 CHATWOOT_API_TOKEN = "w7TS8qA8XVLkU3bo8m7E4i8E"
-CHATWOOT_ACCOUNT_ID = 2  # Cambiado a 2 basado en tu sugerencia
+CHATWOOT_ACCOUNT_ID = 5  # Cambiado a 2 basado en tu sugerencia #esparta
 
 def _get_headers():
     """Crea los encabezados de autenticación para la API de Chatwoot."""
