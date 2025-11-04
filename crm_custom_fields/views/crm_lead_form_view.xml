@@ -75,13 +75,12 @@
                             class="btn-info"/>
                     -->
                     <field name="id_conversacion" invisible="1"/>
-                    <a t-attf-href="https://app-n8n-chatwoot.essftr.easypanel.host/app/accounts/5/conversations/{{record.id_conversacion.raw_value}}"
-                       target="_blank" 
-                       class="btn btn-success" 
-                       role="button"
-                       invisible="not id_conversacion">
-                        💬 Abrir Chat
-                    </a>
+
+                    <button name="action_open_chatwoot_conversation"
+                            type="object"
+                            string="💬 Abrir Chat"
+                            class="btn btn-success"
+                            attrs="{'invisible': [('id_conversacion', '=', False)]}"/>
                 </xpath>
                 
                 <xpath expr="//label[@for='date_deadline']" position="attributes">

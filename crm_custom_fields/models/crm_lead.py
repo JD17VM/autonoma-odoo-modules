@@ -532,3 +532,31 @@ class CrmLead(models.Model):
         raise UserError(f"📋 Inboxes de Chatwoot ({len(inboxes)} total)\n\n"
                     f"{inbox_list}\n\n"
                     f"📋 Revisa el chatter para ver la lista completa.")
+
+    def action_open_chatwoot_conversation(self):
+        """
+        Este método es llamado por el botón 'Abrir Chat'
+        y abre la conversación de Chatwoot en una nueva pestaña.
+        """
+        self.ensure_one()
+        
+        if not self.id_conversacion:
+            raise UserError("Este lead no tiene un ID de conversación de Chatwoot.")
+        
+        # --- ¡ATENCIÓN AQUÍ! ---
+        # En tu XML pusiste el ID de cuenta '5'.
+        # Pero en tu archivo chatwoot_api.py, tienes CHATWOOT_ACCOUNT_ID = 2
+        # Estoy usando '5' basado en tu XML. ¡Asegúrate de que sea el correcto!
+        account_id = 5 
+        
+        # Obtengo la URL base de tu otro archivo
+        base_url = "https://app-n8n-chatwoot.essftr.easypanel.host"
+        
+        url = f"{base_url}/app/accounts/{account_id}/conversations/{self.id_conversacion}"
+        
+        # Esto le dice a Odoo que abra la URL en una nueva pestaña
+        return {
+            'type': 'ir.actions.act_url',
+            'url': url,
+            'target': 'new',
+        }
