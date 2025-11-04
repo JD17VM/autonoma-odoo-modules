@@ -74,7 +74,7 @@
                             type="object" 
                             class="btn-info"/>
                     -->
-                    <field name="id_conversacion" invisible="1"/>
+                    <field name="id_conversacion"/>
 
                     <button name="action_open_chatwoot_conversation"
                             type="object"
