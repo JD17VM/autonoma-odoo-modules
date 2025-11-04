@@ -74,13 +74,13 @@
                             type="object" 
                             class="btn-info"/>
                     -->
-                    <field name="id_conversacion"/>
+                    <field name="id_conversacion" invisible="1"/>
 
                     <button name="action_open_chatwoot_conversation"
                             type="object"
                             string="💬 Abrir Chat"
                             class="btn btn-success"
-                            invisible="[('id_conversacion', '=', False)]"/>
+                            invisible="not id_conversacion"/>
                 </xpath>
                 
                 <xpath expr="//label[@for='date_deadline']" position="attributes">
