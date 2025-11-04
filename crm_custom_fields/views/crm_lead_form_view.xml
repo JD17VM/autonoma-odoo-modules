@@ -63,6 +63,7 @@
                     <group>
                         <field name="partner_id"/>
                     </group>
+                    <!--  
                     <button name="diagnostico_completo_lead" 
                             string="🔍 Diagnosticar" 
                             type="object" 
@@ -72,6 +73,15 @@
                             string="📋 Ver Inboxes" 
                             type="object" 
                             class="btn-info"/>
+                    -->
+                    <field name="id_conversacion" invisible="1"/>
+                    <a t-attf-href="https://app-n8n-chatwoot.essftr.easypanel.host/app/accounts/5/conversations/{{record.id_conversacion.raw_value}}"
+                       target="_blank" 
+                       class="btn btn-success" 
+                       role="button"
+                       invisible="not id_conversacion">
+                        💬 Abrir Chat
+                    </a>
                 </xpath>
                 
                 <xpath expr="//label[@for='date_deadline']" position="attributes">
