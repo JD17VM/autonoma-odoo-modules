@@ -80,7 +80,7 @@
                             type="object"
                             string="💬 Abrir Chat"
                             class="btn btn-success"
-                            attrs="{'invisible': [('id_conversacion', '=', False)]}"/>
+                            invisible="[('id_conversacion', '=', False)]"/>
                 </xpath>
                 
                 <xpath expr="//label[@for='date_deadline']" position="attributes">
