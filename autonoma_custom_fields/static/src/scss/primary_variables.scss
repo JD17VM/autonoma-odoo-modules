@@ -1,0 +1,83 @@
+// Sobrescribir el color primario (el morado de Odoo) por un azul
+$o-brand-primary: #2A089B;
+$o-brand-primary_selected: #6948d6; 
+
+// Variables para el Header del Backend (Menú superior)
+$o-web-header-bg: $o-brand-primary; // Fondo del header
+$o-web-header-color: white;         // Color del texto/íconos en el header
+
+
+.o_main_navbar {
+    background-color: $o-brand-primary !important;
+    --o-navbar-height : 60px !important; 
+
+    .o_menu_sections > button, .o_menu_sections > a{
+        background-color: $o-brand-primary !important;
+
+        :hover{
+            background-color: $o-brand-primary_selected !important;
+        }
+    }
+}
+
+
+.custom-app-banner{
+    background-color: $o-brand-primary;
+    display: flex;
+
+    .contenedor_logos{
+        display:flex;
+        column-gap:8px;
+        padding: 10px 5px 10px 10px;
+        position: absolute;
+        //padding-top: 10px ;
+        //background-color: red;
+        width: 200px;
+        height: 60px;
+        .contenedor_logo_texto_autonoma{
+            height: 100%;
+            //background-color:red;
+            width: 49%;
+
+            img{
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                object-position: center;
+            }
+        }
+        .division_linea{
+            background-color: white;
+            width:3px;
+        }
+        .contenedor_logo_empresa_cliente{
+            //background-color: green;
+            height: 100%;
+            width: 49%;
+
+            img{
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                object-position: center;
+            }
+        }
+    }
+}
+
+.custom-app-banner ~ header.o_navbar {
+    background: red;
+
+    .o_navbar_apps_menu{
+        margin-left: 200px;
+    }
+}
+
+
+@media (max-width: 767px) {
+  .custom-app-banner{
+    .contenedor_logos{
+        margin-left: 36px;
+    }
+}
+}

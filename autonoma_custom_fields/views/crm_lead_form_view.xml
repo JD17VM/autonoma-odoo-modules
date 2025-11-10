@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="crm_custom_fields_crm_lead_view_form_inherit" model="ir.ui.view">
+            <field name="name">crm.lead.form.inherit.add.fields</field>
+            <field name="model">crm.lead</field>
+            <field name="inherit_id" ref="crm.crm_lead_view_form"/>
+            <field name="arch" type="xml">
+                <!-- Mostrar el ícono antes del título -->
+                <xpath expr="//h1[@class='flex-grow-1']" position="before">
+                    <span class="contenedor_icono_canal_24">
+                        <field name="canal_icon_html" 
+                                widget="html" 
+                                invisible="not canal"
+                                nolabel="1"
+                                class="d-inline-block align-middle me-2 mb-2"
+                        />
+                    </span>
+                </xpath>
+                
+                <!-- También puedes agregar el campo canal visible en el formulario -->
+                <xpath expr="//h1[@class='flex-grow-1']/.." position="before">
+                    <div class="d-flex justify-content-between fs-6 text-muted"> 
+                        <div>Canal: <field name="canal" readonly="1"/></div>
+                        <div>
+                            Entrada: <field name="create_date" readonly="1"/>
+                        </div>
+                        <div>
+                            Último Mensaje AutoBot: 
+                            <field name="fecha_display_respuesta" readonly="1" nolabel="1" class="d-inline"/>
+                            <span class="ms-1 me-1">·</span>
+                            <field name="hora_display_respuesta" readonly="1" nolabel="1" class="d-inline"/>
+                            
+                            <field name="es_activo_autonoma_bot" widget="toggle" class="ms-3 mi-toggle-personalizado"/> 
+                        </div>
+                    </div>
+                </xpath> 
+
+                <!-- OCULTAR partner_id del grupo lead_partner -->
+                <xpath expr="//group[@name='lead_partner']//field[@name='partner_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <!-- OCULTAR partner_id del grupo opportunity_partner -->
+                <xpath expr="//group[@name='opportunity_partner']//field[@name='partner_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//sheet/group[1]" position="after">
+                    <separator string="Información de Postulación" /> 
+                    <group>
+                        <group>
+                            <field name="carrera_postulada"/>
+                            <field name="area"/>
+                            <field name="servicio_educativo"/>
+                        </group>
+                        <group>
+                            <field name="universidad_postulada"/>
+                        </group>
+                    </group>
+                    
+                    <separator string="Información de Contacto"/>
+                    <group>
+                        <field name="partner_id"/>
+                    </group>
+                    <!--  
+                    <button name="diagnostico_completo_lead" 
+                            string="🔍 Diagnosticar" 
+                            type="object" 
+                            class="btn-warning"/>
+
+                    <button name="listar_inboxes_chatwoot" 
+                            string="📋 Ver Inboxes" 
+                            type="object" 
+                            class="btn-info"/>
+                    -->
+                    <field name="id_conversacion" invisible="1"/>
+
+                    <button name="action_open_chatwoot_conversation"
+                            type="object"
+                            string="💬 Abrir Chat"
+                            class="btn btn-success"
+                            invisible="not id_conversacion"/>
+                </xpath>
+                
+                <xpath expr="//label[@for='date_deadline']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='date_deadline']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='priority']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='tag_ids']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='team_id']" position="after">
+                    <field name="can_edit_owner" invisible="1"/>
+                </xpath>
+
+                <xpath expr="//field[@name='user_id']" position="attributes">
+                    <attribute name="readonly">can_edit_owner == False</attribute>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,42 @@
+/* crm_custom_fields/static/src/css/style.css */
+
+/* Estilo para el interruptor más grande */
+.mi-toggle-personalizado .o-checkbox {
+    transform: scale(2); /* Aumenta el tamaño al 150% */
+}
+
+/* Puedes forzar el color cuando está activo (cambiando el color de fondo) */
+.mi-toggle-personalizado input:checked {
+    background-color: #ff0000 !important; /* Rojo */
+    border-color: #ff0000 !important;
+}
+
+.mi-toggle-personalizado-tarjeta input:checked {
+    background-color: #ff0000 !important; /* Rojo */
+    border-color: #ff0000 !important;
+}
+
+.mi-toggle-personalizado-tarjeta .o-checkbox {
+    margin-bottom: 0;
+}
+
+
+
+.contenedor_icono_canal_24 img{
+    width: 24px !important; 
+    height: 24px !important; 
+    vertical-align: middle;
+}
+
+.contenedor_icono_canal_18 img{
+    width: 18px !important; 
+    height: 18px !important; 
+    vertical-align: middle;
+}
+
+
+.cont_carrera_ciclo{
+    line-height: 1.3;
+    display: flex;
+    flex-direction: column;
+}
